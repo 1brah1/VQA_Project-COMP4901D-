@@ -1,4 +1,3 @@
-Here is the complete project proposal draft in Markdown format.
 
 ---
 
