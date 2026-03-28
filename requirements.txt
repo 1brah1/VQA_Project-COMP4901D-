@@ -1,0 +1,7 @@
+# torch and torchvision are managed manually for Jetson compatibility
+transformers>=4.45.0
+accelerate>=0.33.0
+pillow
+numpy==1.24.4
+tqdm
+psutil

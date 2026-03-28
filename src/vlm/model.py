@@ -1,0 +1,174 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Literal, Optional, Tuple, Union
+
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+
+@dataclass
+class SimplePrefixVLM:
+    """
+    Minimal VLM wrapper: project image tokens into the LLM embedding space and
+    prepend them to the text prompt as a learned continuous prefix.
+
+    This is intentionally simple so we can benchmark token-compression speed/quality.
+    """
+
+    tokenizer: any
+    llm: any
+    image_proj: torch.nn.Linear
+    device: str
+    dtype: torch.dtype
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        llm_name_or_path: str,
+        *,
+        device: Union[Literal["cpu", "cuda"], str] = "cpu",
+        dtype: torch.dtype = torch.float32,
+        image_token_dim: Optional[int] = None,
+    ) -> "SimplePrefixVLM":
+        tokenizer = AutoTokenizer.from_pretrained(llm_name_or_path, use_fast=True)
+        llm = AutoModelForCausalLM.from_pretrained(llm_name_or_path)
+
+        llm.eval()
+        llm.to(device=device)
+        if device == "cuda":
+            llm.to(dtype=dtype)
+
+        embed_dim = llm.get_input_embeddings().weight.shape[1]
+        if image_token_dim is None:
+            # defer initialization until first call if unknown
+            image_token_dim = embed_dim
+        image_proj = torch.nn.Linear(image_token_dim, embed_dim, bias=False)
+        image_proj.to(device=device)
+        if device == "cuda":
+            image_proj.to(dtype=dtype)
+        image_proj.eval()
+
+        if tokenizer.pad_token_id is None:
+            tokenizer.pad_token = tokenizer.eos_token
+
+        return cls(
+            tokenizer=tokenizer,
+            llm=llm,
+            image_proj=image_proj,
+            device=str(device),
+            dtype=dtype,
+        )
+
+    @classmethod
+    def from_loaded_llm(
+        cls,
+        *,
+        tokenizer: any,
+        llm: any,
+        device: Union[Literal["cpu", "cuda"], str],
+        dtype: torch.dtype,
+        image_token_dim: int,
+    ) -> "SimplePrefixVLM":
+        embed_dim = llm.get_input_embeddings().weight.shape[1]
+        image_proj = torch.nn.Linear(image_token_dim, embed_dim, bias=False).to(device=device)
+        if str(device) == "cuda":
+            image_proj = image_proj.to(dtype)
+        image_proj.eval()
+
+        if tokenizer.pad_token_id is None:
+            tokenizer.pad_token = tokenizer.eos_token
+
+        return cls(
+            tokenizer=tokenizer,
+            llm=llm,
+            image_proj=image_proj,
+            device=str(device),
+            dtype=dtype,
+        )
+
+    @torch.inference_mode()
+    def generate(
+        self,
+        *,
+        image_tokens: torch.Tensor,  # (B, N, Dv)
+        system_prompt: str,
+        user_prompt: str,
+        max_new_tokens: int = 64,
+        temperature: float = 0.2,
+        do_sample: bool = False,
+        return_num_new_tokens: bool = False,
+    ) -> Union[str, Tuple[str, int]]:
+        if image_tokens.ndim != 3:
+            raise ValueError(f"Expected image_tokens (B,N,D); got {tuple(image_tokens.shape)}")
+
+        b, n, dv = image_tokens.shape
+        if b != 1:
+            raise ValueError("This minimal wrapper currently supports batch_size=1 for benchmarking simplicity.")
+
+        # Lazily adapt image projection if SigLIP dim differs from LLM embed dim.
+        if self.image_proj.in_features != dv:
+            self.image_proj = torch.nn.Linear(dv, self.image_proj.out_features, bias=False).to(self.device)
+            if self.device == "cuda":
+                self.image_proj = self.image_proj.to(self.dtype)
+            self.image_proj.eval()
+
+        img_prefix = self.image_proj(image_tokens.to(device=self.device))
+        if self.device == "cuda":
+            img_prefix = img_prefix.to(dtype=self.dtype)
+
+        prompt = self._format_prompt(system_prompt=system_prompt, user_prompt=user_prompt)
+        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(self.device)
+
+        text_embeds = self.llm.get_input_embeddings()(input_ids)
+        inputs_embeds = torch.cat([img_prefix, text_embeds], dim=1)
+
+        attn = torch.ones(inputs_embeds.shape[:2], dtype=torch.long, device=self.device)
+
+        gen_kwargs = dict(
+            inputs_embeds=inputs_embeds,
+            attention_mask=attn,
+            max_new_tokens=max_new_tokens,
+            do_sample=do_sample,
+            # Jetson torch builds may not include distributed/FSDP;
+            # forcing this avoids transformers probing those modules.
+            synced_gpus=False,
+            pad_token_id=self.tokenizer.pad_token_id,
+            eos_token_id=self.tokenizer.eos_token_id,
+        )
+        # Only pass sampling params in sampling mode to avoid warnings.
+        if do_sample:
+            gen_kwargs["temperature"] = temperature
+        else:
+            # Keep deterministic generation_config fields at their neutral defaults
+            # to avoid warnings from checkpoints that ship sampling defaults.
+            gen_kwargs["temperature"] = 1.0
+            gen_kwargs["top_p"] = 1.0
+            gen_kwargs["top_k"] = 50
+
+        out_ids = self.llm.generate(**gen_kwargs)
+
+        # With inputs_embeds, HF generation behavior differs by version:
+        # some return full sequence ids, some return generated-only ids.
+        # Handle both robustly.
+        if out_ids.shape[1] > max_new_tokens:
+            gen = out_ids[0, -max_new_tokens:]
+        else:
+            gen = out_ids[0]
+        n_new = int(gen.shape[0])
+        text = self.tokenizer.decode(gen, skip_special_tokens=True).strip()
+        if return_num_new_tokens:
+            return text, n_new
+        return text
+
+    def _format_prompt(self, *, system_prompt: str, user_prompt: str) -> str:
+        # Qwen2.5-Instruct supports chat template; fall back if missing.
+        if hasattr(self.tokenizer, "apply_chat_template"):
+            messages = [
+                {"role": "system", "content": system_prompt.strip()},
+                {"role": "user", "content": user_prompt.strip()},
+            ]
+            return self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+        return f"System: {system_prompt.strip()}\nUser: {user_prompt.strip()}\nAssistant:"
+

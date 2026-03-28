@@ -1,0 +1,6 @@
+transformers>=4.45.0
+accelerate>=0.33.0
+pillow
+numpy
+tqdm
+psutil

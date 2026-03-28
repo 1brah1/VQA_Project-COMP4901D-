@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.pkl
+*.pt
+*.pth
+.venv/
+venv/
+.python-version
+.DS_Store
+
+# Data / reports
+data/eval/images/**/*
+!data/eval/images/**/.gitkeep
+reports/
+*.jsonl
+# Optional: local benchmark exports copied out of reports/
+fp16_benchmark.json
+awq_int4_benchmark.json
+
+# Hugging Face cache (optional)
+.cache/

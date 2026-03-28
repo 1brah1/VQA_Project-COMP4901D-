@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "Crosswalk_1",
+      "path": "data/eval/images/crosswalk/Crosswalk_1.png",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "red"
+      }
+    },
+    {
+      "id": "Crosswalk_2",
+      "path": "data/eval/images/crosswalk/Crosswalk_2.png",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "green"
+      }
+    },
+    {
+      "id": "Crosswalk_3",
+      "path": "data/eval/images/crosswalk/Crosswalk_3.png",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "red"
+      }
+    },
+    {
+      "id": "Crosswalk_4",
+      "path": "data/eval/images/crosswalk/Crosswalk_4.png",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "red"
+      }
+    },
+    {
+      "id": "Crosswalk_5",
+      "path": "data/eval/images/crosswalk/Crosswalk_5.png",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "green"
+      }
+    },
+    {
+      "id": "Stairs_1",
+      "path": "data/eval/images/stairs/Stairs_1.png",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "no"
+      }
+    },
+    {
+      "id": "Stairs_2",
+      "path": "data/eval/images/stairs/Stairs_2.png",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "yes"
+      }
+    },
+    {
+      "id": "Stairs_3",
+      "path": "data/eval/images/stairs/Stairs_3.png",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "yes"
+      }
+    },
+    {
+      "id": "Stairs_4",
+      "path": "data/eval/images/stairs/Stairs_4.png",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "yes"
+      }
+    },
+    {
+      "id": "Stairs_5",
+      "path": "data/eval/images/stairs/Stairs_5.png",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_1",
+      "path": "data/eval/images/obstacles/Obstacle_1.png",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_2",
+      "path": "data/eval/images/obstacles/Obstacle_2.png",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_3",
+      "path": "data/eval/images/obstacles/Obstacle_3.png",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "no"
+      }
+    },
+    {
+      "id": "Obstacle_4",
+      "path": "data/eval/images/obstacles/Obstacle_4.png",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_5",
+      "path": "data/eval/images/obstacles/Obstacle_5.png",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_6",
+      "path": "data/eval/images/obstacles/Obstacle_6.png",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "yes"
+      }
+    }
+  ]
+}

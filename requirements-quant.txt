@@ -1,0 +1,6 @@
+# LLM INT4 (AWQ) — used by scripts/quantize_llm_awq.py and --llm_mode awq benchmarks.
+# On Jetson (aarch64), `pip install autoawq` may fail if no wheel exists for your JetPack
+# / Python combo. If so: quantize on an x86_64 machine, then scp the folder to:
+#   quantized/qwen2p5_0p5b_awq_int4/
+autoawq
+optimum
