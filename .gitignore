@@ -3,10 +3,16 @@ __pycache__/
 *.pkl
 *.pt
 *.pth
+
+# Virtual environments
 .venv/
+.venv_quant/
 venv/
 .python-version
 .DS_Store
+
+# Quantized model weights (large binary files, copy via scp)
+quantized/
 
 # Data / reports
 data/eval/images/**/*
@@ -17,5 +23,6 @@ reports/
 fp16_benchmark.json
 awq_int4_benchmark.json
 
-# Hugging Face cache (optional)
+# Hugging Face cache
 .cache/
+

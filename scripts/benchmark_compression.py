@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import json
 import re
@@ -24,10 +26,10 @@ class EvalItem:
     id: str
     path: str
     task: str
-    labels: Dict[str, str] # Changed from dict[...]
+    labels: Dict[str, str]
 
 
-def load_labels(path: Path) -> List[EvalItem]: # Changed from list[...]
+def load_labels(path: Path) -> List[EvalItem]:
     obj = json.loads(path.read_text(encoding="utf-8"))
     items = []
     for it in obj.get("items", []):
@@ -95,6 +97,7 @@ def main() -> None:
     system_prompt = load_system_prompt()
 
     enc = SiglipPatchEncoder.from_pretrained(args.siglip, device=device, dtype=dtype)
+    
     if args.llm_mode == "fp16":
         vlm = SimplePrefixVLM.from_pretrained(args.llm, device=device, dtype=dtype)
     else:
@@ -121,7 +124,7 @@ def main() -> None:
                 "accuracy_scored": "only items where gt AND pred are both not 'unknown'; fraction that match",
                 "accuracy_gt_known": "all items with gt != 'unknown'; pred must match gt (unknown pred = wrong)",
                 "by_task": "same metrics split by labels task (crosswalk_signal, stairs, obstacles)",
-                "n_gen_tokens": "count of token ids passed to decode after generate() (see SimplePrefixVLM)",
+                "n_gen_tokens": "count of token ids passed to decode after generate()",
             },
         },
         "compression": {},
@@ -129,6 +132,7 @@ def main() -> None:
 
     if not items:
         raise ValueError("No items found in labels file.")
+        
     sample_img = Image.open(items[0].path).convert("RGB")
     sample_tokens = int(enc.encode(sample_img).shape[1])
     default_targets = recommended_targets(sample_tokens)
@@ -217,7 +221,6 @@ def main() -> None:
                     },
                 }
             )
-            # Memory safety: Clear cache after each item to prevent OOM
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
@@ -240,7 +243,7 @@ def main() -> None:
     print(f"Wrote {out_path}")
 
 
-def _summarize_timings(encode, comp, llm, total) -> Dict[str, Any]: # Changed from dict[...]
+def _summarize_timings(encode, comp, llm, total) -> Dict[str, Any]:
     def s(x):
         if not x:
             return None
@@ -250,7 +253,6 @@ def _summarize_timings(encode, comp, llm, total) -> Dict[str, Any]: # Changed fr
             "p50": float(np.quantile(x, 0.50)),
             "p95": float(np.quantile(x, 0.95)),
         }
-
     return {"encode": s(encode), "compress": s(comp), "llm": s(llm), "total": s(total)}
 
 
@@ -267,7 +269,6 @@ def _summarize_ints(values: List[int]) -> Optional[Dict[str, Any]]:
 
 
 def _aggregate_by_task(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Per-task counts; same definitions as top-level accuracy_scored / accuracy_gt_known."""
     buckets: Dict[str, Dict[str, int]] = {}
     for r in rows:
         task = str(r.get("task", "unknown"))
@@ -330,7 +331,7 @@ def _task_prompt(task: str) -> str:
     return "Give short navigation advice for safe walking."
 
 
-def _ground_truth(task: str, labels: Dict[str, str]) -> str: # Changed from dict[...]
+def _ground_truth(task: str, labels: Dict[str, str]) -> str:
     if task == "crosswalk_signal":
         return labels.get("walk_signal", "unknown")
     if task == "stairs":
