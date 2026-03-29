@@ -224,7 +224,7 @@ class SelfSpeculativeVLM:
         hidden = embed
         position_embeddings = self._base_model.rotary_emb(hidden, pos_ids)
         for i in range(self.split_layer):
-            hidden = self._layers[i](
+            layer_out = self._layers[i](
                 hidden,
                 attention_mask=None,    # single token: attends to all past ✓
                 position_ids=pos_ids,
@@ -233,6 +233,7 @@ class SelfSpeculativeVLM:
                 cache_position=cache_pos,
                 position_embeddings=position_embeddings,
             )
+            hidden = layer_out[0] if isinstance(layer_out, tuple) else layer_out
 
         logits = self._lm_head(self._norm(hidden))   # (1, 1, vocab)
         draft_tok = int(logits[0, 0].argmax().item())
