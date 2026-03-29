@@ -50,11 +50,15 @@ def load_llm_awq(model_name_or_path: str, *, device: str = "cuda") -> LoadedLLM:
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    arch = platform.machine()
+    print(f"[LLM Loader] Architecture: {arch}")
+    print(f"[LLM Loader] Torch version: {torch.__version__}")
+
     # Try real AWQ first (works on x86_64 with a proper autoawq install).
-    if platform.machine() != "aarch64":
+    if arch != "aarch64":
         try:
             from awq import AutoAWQForCausalLM
-            print(f"Loading AWQ quantized model: {model_name_or_path}...")
+            print(f"[LLM Loader] Attempting AWQ quantized load: {model_name_or_path}")
             tok = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=True)
             model = AutoAWQForCausalLM.from_quantized(
                 model_name_or_path,
@@ -64,13 +68,18 @@ def load_llm_awq(model_name_or_path: str, *, device: str = "cuda") -> LoadedLLM:
             )
             if tok.pad_token_id is None:
                 tok.pad_token = tok.eos_token
+            print(f"[LLM Loader] ✓ AWQ quantized model loaded successfully")
             return LoadedLLM(tokenizer=tok, model=model)
         except Exception as e:
-            print(f"AutoAWQ load failed ({e}), falling back to FP16...")
+            print(f"[LLM Loader] ⚠ AWQ load failed: {type(e).__name__}: {e}")
+            print(f"[LLM Loader] Falling back to FP16 unquantized model...")
+    else:
+        print(f"[LLM Loader] Jetson aarch64 detected; autoawq GEMM kernels incompatible")
+        print(f"[LLM Loader] Falling back to FP16 unquantized model...")
 
     # Jetson fallback: load the original unquantized model in FP16.
     # The quantized directory weights are 4-bit packed and cannot be used as FP16.
-    print(f"Jetson/aarch64 fallback: loading {_AWQ_FALLBACK_MODEL} in FP16 on {device}...")
+    print(f"[LLM Loader] Loading {_AWQ_FALLBACK_MODEL} in FP16 on {device}...")
     tok = AutoTokenizer.from_pretrained(_AWQ_FALLBACK_MODEL, use_fast=True)
     model = AutoModelForCausalLM.from_pretrained(
         _AWQ_FALLBACK_MODEL,

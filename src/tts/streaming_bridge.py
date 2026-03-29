@@ -32,6 +32,10 @@ from typing import Dict, Iterator, List, Optional
 import numpy as np
 import torch
 
+# Apply compat patches before importing VibeVoice (Python 3.8 + transformers 4.46.3)
+from src.compat_patches import apply_vibevoice_compat_patches, apply_forward_filters
+apply_vibevoice_compat_patches()
+
 # VibeVoice imports — optional so the module loads even without them installed.
 try:
     from vibevoice.modular.modeling_vibevoice_streaming_inference import (
@@ -149,6 +153,9 @@ class VibeVoiceTTSService:
         )
         self.model.set_ddpm_inference_steps(num_steps=self.inference_steps)
 
+        # Apply compat patch 4 & 5: filter unknown kwargs from model.forward
+        apply_forward_filters(self.model)
+
         self.voice_presets = self._load_voice_presets()
         first_key = next(iter(self.voice_presets))
         self.default_voice_key = (
@@ -200,7 +207,8 @@ class VibeVoiceTTSService:
         chunks as they become available (streaming / low-latency).
         """
         if not text.strip():
-            return
+            # For empty text, yield nothing (valid empty generator)
+            return iter([])
         if not self.processor or not self.model:
             raise RuntimeError("Call load() first")
 
@@ -425,17 +433,23 @@ class WordBufferedTTSBridge:
         """
         Block until all TTS threads have finished and the audio queue is drained.
         Records t_playback_done on the events object.
+        Thread-safe path: joins all worker threads before touching shared state.
         """
+        # Wait for all TTS worker threads to finish
         for t in self._tts_threads:
-            t.join(timeout=timeout)
+            if t.is_alive():
+                t.join(timeout=timeout)
 
+        # Signal playback worker to stop (if not already sent)
         if not self._playback_sentinel_sent:
             self._audio_queue.put(_SENTINEL)
             self._playback_sentinel_sent = True
 
-        if self._playback_thread:
+        # Wait for playback thread to drain queue
+        if self._playback_thread and self._playback_thread.is_alive():
             self._playback_thread.join(timeout=timeout)
 
+        # Record completion time
         if not self.events.t_playback_done:
             self.events.t_playback_done = time.perf_counter()
 

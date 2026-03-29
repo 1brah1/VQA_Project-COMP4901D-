@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -42,7 +42,7 @@ def compress_27x27_tokens(x: torch.Tensor, *, target_tokens: int) -> torch.Tenso
     return pooled.permute(0, 2, 3, 1).reshape(b, out_h * out_w, d)  # (B,target,D)
 
 
-def recommended_targets(num_tokens: int) -> list[int]:
+def recommended_targets(num_tokens: int) -> List[int]:
     """
     Stable benchmark presets for known SigLIP grid sizes.
     """
