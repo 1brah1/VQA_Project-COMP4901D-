@@ -312,7 +312,7 @@ class SelfSpeculativeVLM:
         d_pos_ids = d_pos.unsqueeze(0)
         d_position_embeddings = self._base_model.rotary_emb(d_hidden, d_pos_ids)
         for i in range(self.split_layer):
-            d_hidden = self._layers[i](
+            layer_out = self._layers[i](
                 d_hidden,
                 attention_mask=None,
                 past_key_values=draft_cache,
@@ -321,6 +321,8 @@ class SelfSpeculativeVLM:
                 position_ids=d_pos_ids,
                 position_embeddings=d_position_embeddings,
             )
+            # Qwen2 layers return tuple (hidden_states, ...) when use_cache=True
+            d_hidden = layer_out[0] if isinstance(layer_out, tuple) else layer_out
 
         return pending_token, verify_cache, draft_cache, prefix_len
 
