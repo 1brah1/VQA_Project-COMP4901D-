@@ -46,8 +46,10 @@ try:
     )
     from vibevoice.modular.streamer import AudioStreamer
     _VIBEVOICE_AVAILABLE = True
-except ImportError:
+    _VIBEVOICE_IMPORT_ERROR = ""
+except ImportError as e:
     _VIBEVOICE_AVAILABLE = False
+    _VIBEVOICE_IMPORT_ERROR = str(e)
 
 SAMPLE_RATE = 24_000
 _SENTINEL = object()  # queue poison-pill
@@ -91,7 +93,8 @@ class VibeVoiceTTSService:
             raise ImportError(
                 "vibevoice package not found.  "
                 "Install it from: https://github.com/microsoft/VibeVoice  "
-                "or run: pip install -e /path/to/VibeVoice"
+                "or run: pip install -e /path/to/VibeVoice.  "
+                f"Underlying import error: {_VIBEVOICE_IMPORT_ERROR}"
             )
         self.model_path = model_path
         self.voices_dir = Path(voices_dir) if voices_dir else None
@@ -114,38 +117,51 @@ class VibeVoiceTTSService:
 
     def load(self) -> None:
         """Download / load model weights and voice presets into memory."""
-        print(f"[TTS] Loading processor from {self.model_path}")
-        self.processor = VibeVoiceStreamingProcessor.from_pretrained(self.model_path)
+        model_source = self.model_path
+        if self.model_path == "microsoft/VibeVoice-Realtime-0.5B":
+            local_model = Path("/home/comp4901d/vibevoice_test/model")
+            if local_model.exists():
+                model_source = str(local_model)
+                print(f"[TTS] Using local VibeVoice model cache: {model_source}")
+
+        print(f"[TTS] Loading processor from {model_source}")
+        self.processor = VibeVoiceStreamingProcessor.from_pretrained(model_source)
 
         if self.device == "mps":
-            load_dtype, device_map, attn_impl = torch.float32, None, "sdpa"
+            attempts = [(torch.float32, None, "eager")]
         elif self.device == "cuda":
-            load_dtype, device_map, attn_impl = torch.bfloat16, "cuda", "flash_attention_2"
+            # Jetson-safe fallback order: flash_attention_2 -> eager.
+            attempts = [
+                (torch.bfloat16, "cuda", "flash_attention_2"),
+                (torch.float32, "cuda", "eager"),
+            ]
         else:
-            load_dtype, device_map, attn_impl = torch.float32, "cpu", "sdpa"
+            attempts = [(torch.float32, "cpu", "eager")]
 
-        try:
-            self.model = VibeVoiceStreamingForConditionalGenerationInference.from_pretrained(
-                self.model_path,
-                torch_dtype=load_dtype,
-                device_map=device_map,
-                attn_implementation=attn_impl,
-            )
-            if self.device == "mps":
-                self.model.to("mps")
-        except Exception:
-            if attn_impl == "flash_attention_2":
-                print("[TTS] flash_attention_2 unavailable; retrying with SDPA")
+        last_exc = None
+        for load_dtype, device_map, attn_impl in attempts:
+            try:
+                print(f"[TTS] Loading model with attn={attn_impl}, dtype={load_dtype}")
                 self.model = VibeVoiceStreamingForConditionalGenerationInference.from_pretrained(
-                    self.model_path,
+                    model_source,
                     torch_dtype=load_dtype,
                     device_map=device_map,
-                    attn_implementation="sdpa",
+                    attn_implementation=attn_impl,
                 )
-            else:
-                raise
+                if self.device == "mps":
+                    self.model.to("mps")
+                break
+            except Exception as e:
+                last_exc = e
+                print(f"[TTS] Failed with attn={attn_impl}: {e}")
+
+        if self.model is None:
+            raise RuntimeError(f"Failed to load VibeVoice model after fallbacks: {last_exc}")
 
         self.model.eval()
+        if self.device == "cuda":
+            # Jetson is more stable in float32 for this model path.
+            self.model = self.model.to(torch.float32)
         self.model.model.noise_scheduler = self.model.model.noise_scheduler.from_config(
             self.model.model.noise_scheduler.config,
             algorithm_type="sde-dpmsolver++",
@@ -172,7 +188,15 @@ class VibeVoiceTTSService:
                 "voices_dir not set.  Pass it to VibeVoiceTTSService(..., voices_dir=...)"
             )
         if not self.voices_dir.exists():
-            raise RuntimeError(f"Voices directory not found: {self.voices_dir}")
+            jetson_fallback = Path("/home/comp4901d/vibevoice_test/voices")
+            if jetson_fallback.exists():
+                print(
+                    "[TTS] voices_dir not found; using Jetson fallback: "
+                    f"{jetson_fallback}"
+                )
+                self.voices_dir = jetson_fallback
+            else:
+                raise RuntimeError(f"Voices directory not found: {self.voices_dir}")
         presets: Dict[str, Path] = {}
         for pt in self.voices_dir.rglob("*.pt"):
             presets[pt.stem] = pt

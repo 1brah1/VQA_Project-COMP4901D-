@@ -128,6 +128,102 @@
       "labels": {
         "obstacle_present": "yes"
       }
+    },
+    {
+      "id": "Crosswalk_6",
+      "path": "data/eval/images/crosswalk/Crosswalk_6.jpg",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "red"
+      }
+    },
+    {
+      "id": "Crosswalk_7",
+      "path": "data/eval/images/crosswalk/Crosswalk_7.jpg",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "green"
+      }
+    },
+    {
+      "id": "Crosswalk_8",
+      "path": "data/eval/images/crosswalk/Crosswalk_8.jpg",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "red"
+      }
+    },
+    {
+      "id": "Crosswalk_9",
+      "path": "data/eval/images/crosswalk/Crosswalk_9.jpg",
+      "task": "crosswalk_signal",
+      "labels": {
+        "walk_signal": "green"
+      }
+    },
+    {
+      "id": "Stairs_6",
+      "path": "data/eval/images/stairs/Stairs_6.jpg",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "yes"
+      }
+    },
+    {
+      "id": "Stairs_7",
+      "path": "data/eval/images/stairs/Stairs_7.jpg",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "no"
+      }
+    },
+    {
+      "id": "Stairs_8",
+      "path": "data/eval/images/stairs/Stairs_8.jpg",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "no"
+      }
+    },
+    {
+      "id": "Stairs_9",
+      "path": "data/eval/images/stairs/Stairs_9.jpg",
+      "task": "stairs",
+      "labels": {
+        "stairs_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_7",
+      "path": "data/eval/images/obstacles/Obstacle_7.jpg",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_8",
+      "path": "data/eval/images/obstacles/Obstacle_8.jpg",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "no"
+      }
+    },
+    {
+      "id": "Obstacle_9",
+      "path": "data/eval/images/obstacles/Obstacle_9.jpg",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "yes"
+      }
+    },
+    {
+      "id": "Obstacle_10",
+      "path": "data/eval/images/obstacles/Obstacle_10.jpg",
+      "task": "obstacles",
+      "labels": {
+        "obstacle_present": "no"
+      }
     }
   ]
 }

@@ -33,7 +33,7 @@ Python 3.8-compatible (Jetson L4T default).
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Generator, List, Optional, Tuple, Union
 
 import torch
@@ -73,6 +73,10 @@ class SpecStats:
     prefill_ms: float = 0.0
     draft_ms: float = 0.0
     verify_ms: float = 0.0
+    draft_round_ms: List[float] = field(default_factory=list)
+    verify_round_ms: List[float] = field(default_factory=list)
+    accepted_per_round: List[int] = field(default_factory=list)
+    candidates_per_round: List[int] = field(default_factory=list)
 
     @property
     def acceptance_rate(self) -> float:
@@ -105,11 +109,17 @@ class SpecStats:
         return self.baseline_ms_estimate / self.total_generation_ms
 
     def summary(self) -> str:
+        rounds = len(self.accepted_per_round)
+        if rounds > 0:
+            mean_accept = sum(self.accepted_per_round) / float(rounds)
+        else:
+            mean_accept = 0.0
         return (
             f"tokens={self.total_tokens}  "
             f"verify_passes={self.verify_passes}  "
             f"accepted={self.accepted_drafts}/{self.total_draft_candidates} "
             f"({self.acceptance_rate:.0%} accept)  "
+            f"rounds={rounds} mean_accept={mean_accept:.2f}  "
             f"~{self.tokens_per_verify_pass:.1f} tok/verify  "
             f"speedup~{self.speedup:.2f}x  "
             f"prefill={self.prefill_ms:.0f}ms  "
@@ -338,6 +348,7 @@ class SelfSpeculativeVLM:
         system_prompt: str,
         user_prompt: str,
         max_new_tokens: int = 64,
+        debug_spec: bool = False,
     ) -> Generator[Tuple[str, bool], None, SpecStats]:
         """
         Streaming generator that yields (decoded_text_chunk, was_draft_accepted).
@@ -386,7 +397,9 @@ class SelfSpeculativeVLM:
                 draft_ids.append(draft_tok)
                 stats.total_draft_candidates += 1
                 cur = draft_tok
-            stats.draft_ms += (time.perf_counter() - t_draft) * 1000.0
+            draft_ms = (time.perf_counter() - t_draft) * 1000.0
+            stats.draft_ms += draft_ms
+            stats.draft_round_ms.append(draft_ms)
 
             if not draft_ids:
                 break
@@ -404,7 +417,9 @@ class SelfSpeculativeVLM:
             verify_preds, verify_cache = self._verify_batch(
                 verify_input, verify_cache, seq_offset=total_seq_len
             )
-            stats.verify_ms += (time.perf_counter() - t_verify) * 1000.0
+            verify_ms = (time.perf_counter() - t_verify) * 1000.0
+            stats.verify_ms += verify_ms
+            stats.verify_round_ms.append(verify_ms)
             stats.verify_passes += 1
 
             # ── Step C: Accept ───────────────────────────────────────
@@ -418,9 +433,21 @@ class SelfSpeculativeVLM:
                 else:
                     break
 
+            if debug_spec:
+                print(
+                    "[PPSD DEBUG] "
+                    f"seq={total_seq_len} "
+                    f"pending={pending_tok} "
+                    f"draft={draft_ids} "
+                    f"verify={verify_preds[:len(draft_ids)+1]} "
+                    f"n_accept={n_accept}"
+                )
+
             # New confirmed tokens = pending + n_accept draft tokens
             confirmed = [pending_tok] + draft_ids[:n_accept]
             stats.accepted_drafts += n_accept
+            stats.accepted_per_round.append(n_accept)
+            stats.candidates_per_round.append(len(draft_ids))
 
             # The new pending is either:
             #   • verify_preds[n_accept] — the verifier's correction / bonus token

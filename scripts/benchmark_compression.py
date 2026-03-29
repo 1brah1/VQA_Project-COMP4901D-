@@ -81,6 +81,13 @@ def main() -> None:
         default=None,
         help="If set, use this cap for the benchmark run (recommended 8-16 for label tasks on Jetson).",
     )
+    p.add_argument(
+        "--prompt_style",
+        type=str,
+        default="label_plus_action",
+        choices=["label_plus_action", "label_only"],
+        help="Prompt format: label_only often improves classification accuracy by forcing a one-token answer.",
+    )
     p.add_argument("--out", type=str, default="reports/benchmark.json")
     args = p.parse_args()
     eval_cap = args.max_new_tokens_eval if args.max_new_tokens_eval is not None else args.max_new_tokens
@@ -120,9 +127,11 @@ def main() -> None:
             "max_new_tokens_used": eval_cap,
             "max_new_tokens_default": args.max_new_tokens,
             "max_new_tokens_eval": args.max_new_tokens_eval,
+            "prompt_style": args.prompt_style,
             "metrics": {
                 "accuracy_scored": "only items where gt AND pred are both not 'unknown'; fraction that match",
                 "accuracy_gt_known": "all items with gt != 'unknown'; pred must match gt (unknown pred = wrong)",
+                "unknown_rate": "fraction of gt-known items where prediction is 'unknown'",
                 "by_task": "same metrics split by labels task (crosswalk_signal, stairs, obstacles)",
                 "n_gen_tokens": "count of token ids passed to decode after generate()",
             },
@@ -170,7 +179,7 @@ def main() -> None:
             patches_c = compress_27x27_tokens(patches, target_tokens=comp)
             tc1 = time.perf_counter()
 
-            user_prompt = _task_prompt(it.task)
+            user_prompt = _task_prompt(it.task, prompt_style=args.prompt_style)
 
             tl0 = time.perf_counter()
             gen_out = vlm.generate(
@@ -231,6 +240,7 @@ def main() -> None:
             "n_gt_known": n_gt_known,
             "correct_gt_known": correct_gt_known,
             "accuracy_gt_known": (correct_gt_known / n_gt_known) if n_gt_known else None,
+            "unknown_rate": ((n_gt_known - scored) / n_gt_known) if n_gt_known else None,
             "accuracy_overall": (correct / total) if total else None,
             "by_task": _aggregate_by_task(rows),
             "timing_s": _summarize_timings(t_encode, t_comp, t_llm, t_total),
@@ -305,11 +315,21 @@ def _aggregate_by_task(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             "accuracy_gt_known": (b["correct_gt_known"] / nk) if nk else None,
             "n_scored": ns,
             "accuracy_scored": (b["correct_scored"] / ns) if ns else None,
+            "unknown_rate": ((nk - ns) / nk) if nk else None,
         }
     return out
 
 
-def _task_prompt(task: str) -> str:
+def _task_prompt(task: str, prompt_style: str = "label_plus_action") -> str:
+    if prompt_style == "label_only":
+        if task == "crosswalk_signal":
+            return "Answer with exactly one word only: red|green|unknown"
+        if task == "stairs":
+            return "Answer with exactly one word only: yes|no|unknown"
+        if task == "obstacles":
+            return "Answer with exactly one word only: yes|no|unknown"
+        return "Answer with one short phrase only."
+
     if task == "crosswalk_signal":
         return (
             "Crosswalk walk signal is it red or green? "
