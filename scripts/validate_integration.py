@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Validate VQA + TTS integration on Jetson.
-Tests imports, compat patches, and basic pipeline setup.
+Tests imports and fallback TTS backend setup.
 """
 import sys
 import traceback
@@ -35,8 +35,8 @@ def test_imports():
         return False
         
     try:
-        print("[3/7] Importing src.compat_patches...", end=" ")
-        from src import compat_patches
+        print("[3/7] Importing src.tts.fallback_backends...", end=" ")
+        from src.tts import fallback_backends
         print("✓")
     except Exception as e:
         print(f"✗ Error: {e}")
@@ -64,8 +64,8 @@ def test_imports():
         return False
         
     try:
-        print("[6/7] Importing src.tts components...", end=" ")
-        from src.tts.streaming_bridge import VibeVoiceTTSService, WordBufferedTTSBridge
+        print("[6/7] Importing fallback TTS components...", end=" ")
+        from src.tts.fallback_backends import PiperTTSBackend, SileroTTSBackend, Pyttsx3TTSBackend
         print("✓")
     except Exception as e:
         print(f"✗ Error: {e}")
@@ -73,38 +73,32 @@ def test_imports():
         return False
         
     try:
-        print("[7/7] Importing vibevoice package...", end=" ")
-        import vibevoice
-        print(f"✓ (found at {vibevoice.__file__})")
+        print("[7/7] Checking piper executable...", end=" ")
+        import shutil
+        print("✓" if shutil.which("piper") else "⚠ Warning: piper not found in PATH")
     except Exception as e:
-        print(f"⚠ Warning (expected if not fully installed): {e}")
-        # Not fatal - VibeVoice import is optional
+        print(f"⚠ Warning (non-fatal): {e}")
         
     return True
 
 
-def test_compat_patches():
-    """Test that compat patches were applied."""
+def test_fallback_backends():
+    """Test that fallback backend classes can be instantiated."""
     print("\n" + "=" * 60)
-    print("Testing compat patches...")
+    print("Testing fallback backends...")
     print("=" * 60)
     
     try:
-        import transformers.modeling_flash_attention_utils as _m
-        has_fak = hasattr(_m, 'FlashAttentionKwargs')
-        print(f"[1/3] FlashAttentionKwargs shim: {'✓' if has_fak else '✗'}")
-        
-        import transformers.generation as _gen
-        has_bs = hasattr(_gen, 'BaseStreamer')
-        print(f"[2/3] BaseStreamer re-export: {'✓' if has_bs else '✗'}")
-        
-        from transformers import GenerationMixin
-        has_pgc = hasattr(GenerationMixin, '_prepare_generation_config')
-        print(f"[3/3] GenerationMixin patched: {'✓' if has_pgc else '✗'}")
-        
-        return has_fak and has_bs and has_pgc
+        from src.tts.fallback_backends import PiperTTSBackend, SileroTTSBackend, Pyttsx3TTSBackend
+        piper = PiperTTSBackend()
+        silero = SileroTTSBackend(device="cpu")
+        pyttsx = Pyttsx3TTSBackend()
+        print(f"[1/3] Piper backend class: {'✓' if piper is not None else '✗'}")
+        print(f"[2/3] Silero backend class: {'✓' if silero is not None else '✗'}")
+        print(f"[3/3] pyttsx3 backend class: {'✓' if pyttsx is not None else '✗'}")
+        return True
     except Exception as e:
-        print(f"✗ Error checking compat patches: {e}")
+        print(f"✗ Error checking fallback backends: {e}")
         traceback.print_exc()
         return False
 
@@ -120,9 +114,9 @@ def main():
         print("\n✗ Import validation FAILED")
         return 1
         
-    # Test compat patches
-    if not test_compat_patches():
-        print("\n✗ Compat patch validation FAILED")
+    # Test fallback backend setup
+    if not test_fallback_backends():
+        print("\n✗ Fallback backend validation FAILED")
         return 1
         
     print("\n" + "=" * 60)

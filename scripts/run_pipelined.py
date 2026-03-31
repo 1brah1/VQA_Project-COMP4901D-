@@ -1,7 +1,7 @@
 """
 scripts/run_pipelined.py
 ========================
-End-to-end pipelined VQA with PPSD speculative decoding + streaming TTS.
+End-to-end pipelined VQA with PPSD speculative decoding.
 
 Pipeline stages
 ---------------
@@ -9,7 +9,7 @@ Pipeline stages
     2. Vision Encode – SigLIP patch encoding
     3. Compression  – adaptive average-pool token compression
     4. VLM Inference – SelfSpeculativeVLM streaming (PPSD draft + verify)
-    5. TTS          – VibeVoice fires after first `--word_threshold` words (default 3)
+    5. TTS          – legacy path disabled; use scripts/run_integrated.py for TTS
 
 Outputs a Markdown latency breakdown table at the end, e.g.::
 
@@ -29,17 +29,7 @@ Usage
   # VLM-only (no TTS):
   python scripts/run_pipelined.py --labels data/eval/labels.json --no_tts
 
-  # Full pipeline with TTS:
-  python scripts/run_pipelined.py \\
-      --labels data/eval/labels.json \\
-      --tts microsoft/VibeVoice-Realtime-0.5B \\
-      --voices_dir C:/Users/hash_/VibeVoice/voices/streaming_model
-
-  # Measure without playing audio (just collect chunks):
-  python scripts/run_pipelined.py --labels data/eval/labels.json \\
-      --tts microsoft/VibeVoice-Realtime-0.5B \\
-      --voices_dir C:/Users/hash_/VibeVoice/voices/streaming_model \\
-      --no_play
+  # For TTS-enabled runs, use scripts/run_integrated.py instead.
 
 Python 3.8-compatible.
 """
@@ -47,7 +37,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 import time
 from pathlib import Path
@@ -67,35 +56,33 @@ from src.vision.token_compression import compress_27x27_tokens
 from src.vlm.model import SimplePrefixVLM
 from src.vlm.pipelined_vlm import SelfSpeculativeVLM, SpecStats
 from src.prompts.load_prompt import load_system_prompt
-from src.tts.streaming_bridge import VibeVoiceTTSService, WordBufferedTTSBridge
+from src.classification import classify_and_format, backend_state
 
 
 def _preflight_tts_runtime() -> None:
-    """Warn (not fail) on TTS dependency issues; actual TTS code handles errors gracefully."""
-    try:
-        import huggingface_hub as hh
-        hub_ver = getattr(hh, "__version__", "unknown")
-        print(f"[run_pipelined] TTS preflight: huggingface_hub={hub_ver}")
-    except Exception as e:
-        print(f"[run_pipelined] WARNING: huggingface_hub check failed: {e}")
+    """Legacy placeholder; run_integrated.py owns TTS runtime now."""
+    print("[run_pipelined] TTS disabled in this script; use scripts/run_integrated.py")
 
-    try:
-        import diffusers
-        print(f"[run_pipelined] TTS preflight: diffusers={diffusers.__version__}")
-    except Exception as e:
-        print(f"[run_pipelined] WARNING: diffusers check failed: {e}")
 
-    try:
-        from src.tts import streaming_bridge as sb
-        if not getattr(sb, "_VIBEVOICE_AVAILABLE", False):
-            err = getattr(sb, "_VIBEVOICE_IMPORT_ERROR", "unknown")
-            print(
-                f"[run_pipelined] WARNING: vibevoice import not available: {err}"
-            )
-        else:
-            print("[run_pipelined] TTS preflight: vibevoice available")
-    except Exception as e:
-        print(f"[run_pipelined] WARNING: vibevoice check failed: {e}")
+def _load_image_proj(vlm: SimplePrefixVLM, image_proj_path: Optional[str], device: str) -> Optional[str]:
+    if not image_proj_path:
+        return None
+    proj_path = Path(image_proj_path)
+    if proj_path.is_dir():
+        proj_path = proj_path / "image_proj.pt"
+    if not proj_path.exists():
+        raise FileNotFoundError(f"image_proj not found: {proj_path}")
+    state = torch.load(str(proj_path), map_location="cpu")
+    state_dtype = None
+    for val in state.values():
+        if isinstance(val, torch.Tensor):
+            state_dtype = val.dtype
+            break
+    if state_dtype is not None:
+        vlm.image_proj = vlm.image_proj.to(device=device, dtype=state_dtype)
+    vlm.image_proj.load_state_dict(state)
+    vlm.image_proj.eval()
+    return str(proj_path)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -146,30 +133,9 @@ _CLASSIFICATION_SYSTEM_PROMPT = (
 )
 
 
-def _parse_crosswalk_signal(text: str) -> str:
-    t = text.lower()
-    if re.search(r"\bred\b", t):
-        return "red"
-    if re.search(r"\bgreen\b", t):
-        return "green"
-    return "unknown"
-
-
-def _parse_yes_no(text: str) -> str:
-    t = text.lower()
-    if re.search(r"\bno\b|\bnone\b|\bclear\b", t):
-        return "no"
-    if re.search(r"\byes\b|\bpresent\b|\bobstacle\b|\bstairs\b|\bstep\b", t):
-        return "yes"
-    return "unknown"
-
-
 def _pred_from_text(task: str, text: str) -> str:
-    if task == "crosswalk_signal":
-        return _parse_crosswalk_signal(text)
-    if task in ("stairs", "obstacles"):
-        return _parse_yes_no(text)
-    return "unknown"
+    pred, _spoken = classify_and_format(task, text)
+    return pred
 
 
 def _retry_prompt_for_task(task: str) -> str:
@@ -245,7 +211,7 @@ def run_one(
     spec_vlm: SelfSpeculativeVLM,
     target_tokens: int,
     system_prompt: str,
-    tts_service: Optional[VibeVoiceTTSService] = None,
+    tts_service: Optional[object] = None,
     word_threshold: int = 3,
     play_audio: bool = True,
     verbose: bool = False,
@@ -281,13 +247,6 @@ def run_one(
     user_prompt = _TASK_PROMPTS.get(task, _TASK_PROMPTS["obstacle"])
 
     bridge: Optional[WordBufferedTTSBridge] = None
-    if tts_service is not None:
-        bridge = WordBufferedTTSBridge(
-            tts_service,
-            word_threshold=word_threshold,
-            play_audio=play_audio,
-        )
-        bridge.start()
 
     text_parts: List[str] = []
     spec_stats: Optional[SpecStats] = None
@@ -307,8 +266,6 @@ def run_one(
                 timer.mark("vlm_first_token")
                 first_token_marked = True
             text_parts.append(chunk)
-            if bridge is not None:
-                bridge.feed(chunk)
             if verbose:
                 print(chunk, end="", flush=True)
     except StopIteration as e:
@@ -318,14 +275,23 @@ def run_one(
     if verbose:
         print()
 
-    if bridge is not None:
+    text = "".join(text_parts).strip()
+    _pred, spoken_sentence = classify_and_format(task, text)
+    tts_stage_offset_ms = timer.elapsed_ms("start", "vlm_done")
+
+    if tts_service is not None:
+        bridge = WordBufferedTTSBridge(
+            tts_service,
+            word_threshold=word_threshold,
+            play_audio=play_audio,
+        )
+        bridge.start()
+        bridge.feed(spoken_sentence)
         bridge.flush()
         bridge.wait(timeout=30.0)
         bev = bridge.events
     else:
         bev = None
-
-    text = "".join(text_parts).strip()
 
     # ── Collect latencies ────────────────────────────────────────────────────
     lat: Dict[str, float] = {
@@ -344,8 +310,8 @@ def run_one(
 
     if bev is not None and bev.t_first_audio > 0.0:
         lat["tts_ttfa_ms"]        = bev.tts_first_audio_ms
-        lat["e2e_first_audio_ms"] = bev.e2e_first_audio_ms
-        lat["e2e_total_ms"]       = bev.e2e_total_ms
+        lat["e2e_first_audio_ms"] = tts_stage_offset_ms + bev.e2e_first_audio_ms
+        lat["e2e_total_ms"]       = tts_stage_offset_ms + bev.e2e_total_ms
     else:
         lat["tts_ttfa_ms"]        = 0.0
         lat["e2e_first_audio_ms"] = timer.elapsed_ms("start", "vlm_done")
@@ -361,7 +327,7 @@ def run_one_baseline(
     vlm: SimplePrefixVLM,
     target_tokens: int,
     system_prompt: str,
-    tts_service: Optional[VibeVoiceTTSService] = None,
+    tts_service: Optional[object] = None,
     play_audio: bool = True,
     max_new_tokens: int = 12,
 ) -> Tuple[Dict[str, float], str]:
@@ -414,10 +380,12 @@ def run_one_baseline(
         "vlm_total_ms": timer.elapsed_ms("compress", "vlm_done"),
     }
 
-    if tts_service is not None and text:
+    _pred, spoken_sentence = classify_and_format(task, text)
+
+    if tts_service is not None and spoken_sentence:
         t_tts_start = time.perf_counter()
         first_audio_ts = 0.0
-        for chunk in tts_service.stream(text):
+        for chunk in tts_service.stream(spoken_sentence):
             if first_audio_ts == 0.0:
                 first_audio_ts = time.perf_counter()
             if play_audio:
@@ -513,10 +481,12 @@ def main() -> None:
                         help="SigLIP model name or path")
     parser.add_argument("--llm",           default="Qwen/Qwen2.5-0.5B-Instruct",
                         help="LLM model name or path (also accepts AWQ dir)")
-    parser.add_argument("--tts",           default="microsoft/VibeVoice-Realtime-0.5B",
-                        help="VibeVoice model path or HF repo ID")
+    parser.add_argument("--image-proj",    default=None,
+                        help="Optional image_proj.pt file or directory for trained projection")
+    parser.add_argument("--tts",           default=None,
+                        help="deprecated; use scripts/run_integrated.py for TTS")
     parser.add_argument("--voices_dir",    default=None,
-                        help="path to voices/streaming_model directory")
+                        help="deprecated; use scripts/run_integrated.py for TTS")
     parser.add_argument("--target_tokens", type=int, default=192,
                         help="token compression target (192, 81, 36, or 9)")
     parser.add_argument("--split_layer",   type=int, default=12,
@@ -526,11 +496,11 @@ def main() -> None:
     parser.add_argument("--enable_speculative", action="store_true",
                         help="enable PPSD speculative decoding (off by default for Jetson stability)")
     parser.add_argument("--word_threshold", type=int, default=3,
-                        help="words to buffer before triggering TTS (default: 3)")
+                        help="deprecated")
     parser.add_argument("--max_new_tokens", type=int, default=12,
                         help="generation cap per sample (lower values improve classification stability)")
     parser.add_argument("--no_tts",        action="store_true",
-                        help="skip TTS (measure VLM latency only)")
+                        help="skip TTS (always true in this script)")
     parser.add_argument("--no_play",       action="store_true",
                         help="collect audio but don't play it via sounddevice")
     parser.add_argument("--max_images",    type=int, default=None,
@@ -592,6 +562,7 @@ def main() -> None:
     vlm = SimplePrefixVLM.from_pretrained(
         args.llm, device=device, dtype=dtype
     )
+    image_proj_path = _load_image_proj(vlm, args.image_proj, device)
     spec_vlm = SelfSpeculativeVLM(vlm, split_layer=args.split_layer, K=args.K)
     print(
         f"[run_pipelined] PPSD ready: "
@@ -601,22 +572,11 @@ def main() -> None:
         print("[run_pipelined] Speculative decoding disabled by default; using baseline mode")
 
     # ── TTS ──────────────────────────────────────────────────────────────────
-    tts_service: Optional[VibeVoiceTTSService] = None
+    tts_service: Optional[object] = None
     if not args.no_tts:
-        if not args.voices_dir:
-            print(
-                "[run_pipelined] WARNING: --voices_dir not set; skipping TTS.  "
-                "Pass --no_tts to suppress this warning."
-            )
-        else:
-            _preflight_tts_runtime()
-            print(f"[run_pipelined] Loading TTS: {args.tts}")
-            tts_service = VibeVoiceTTSService(
-                model_path=args.tts,
-                voices_dir=args.voices_dir,
-                device=device,
-            )
-            tts_service.load()
+        _preflight_tts_runtime()
+        print("[run_pipelined] forcing --no_tts; use scripts/run_integrated.py for TTS")
+        args.no_tts = True
 
     if args.system_prompt_mode == "navigation":
         system_prompt = load_system_prompt()
@@ -674,14 +634,17 @@ def main() -> None:
         all_latencies.append(lat)
         if spec_stats:
             all_spec_stats.append(spec_stats)
+        pred, spoken_sentence = classify_and_format(task, text)
         all_results.append({
             "id": item.id,
             "image": img_name,
             "task": task,
             "response": text,
+            "classification_label": pred,
+            "spoken_sentence": spoken_sentence,
             "run_mode": run_mode,
             "gt": _gt_from_labels(task, item.labels),
-            "pred": _pred_from_text(task, text),
+            "pred": pred,
             "spec": {
                 "acceptance_rate": spec_stats.acceptance_rate if spec_stats else None,
                 "speedup": spec_stats.speedup if spec_stats else None,
@@ -741,8 +704,31 @@ def main() -> None:
     if args.out:
         out_path = Path(args.out)
         out_path.parent.mkdir(parents=True, exist_ok=True)
+        report = {
+            "schema_version": "v2",
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "device": device,
+            "run_config": {
+                "labels": str(labels_path),
+                "target_tokens": args.target_tokens,
+                "image_proj": image_proj_path,
+                "split_layer": args.split_layer,
+                "K": args.K,
+                "enable_speculative": args.enable_speculative,
+                "word_threshold": args.word_threshold,
+                "max_new_tokens": args.max_new_tokens,
+                "no_tts": args.no_tts,
+                "system_prompt_mode": args.system_prompt_mode,
+            },
+            "tts_backend": backend_state(
+                requested="disabled",
+                active="disabled",
+                reason="use_run_integrated_for_tts",
+            ),
+            "results": all_results,
+        }
         with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(all_results, f, indent=2)
+            json.dump(report, f, indent=2)
         print(f"Results written to {out_path}")
 
 

@@ -1,10 +1,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal, Optional, Tuple, Union
+from typing import Any, Dict, Literal, Optional, Tuple, Union
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+
+def _extract_model_identity(llm_name_or_path: str, llm: Any, mode: str) -> Dict[str, Any]:
+    cfg = getattr(llm, "config", None)
+    hidden_size = getattr(cfg, "hidden_size", None)
+    num_layers = getattr(cfg, "num_hidden_layers", None)
+    vocab_size = getattr(cfg, "vocab_size", None)
+    return {
+        "model_id": llm_name_or_path,
+        "mode": mode,
+        "hidden_size": hidden_size,
+        "num_layers": num_layers,
+        "vocab_size": vocab_size,
+    }
 
 
 @dataclass
@@ -21,6 +35,7 @@ class SimplePrefixVLM:
     image_proj: torch.nn.Linear
     device: str
     dtype: torch.dtype
+    model_identity: Dict[str, Any]
 
     @classmethod
     def from_pretrained(
@@ -41,7 +56,6 @@ class SimplePrefixVLM:
 
         embed_dim = llm.get_input_embeddings().weight.shape[1]
         if image_token_dim is None:
-            # defer initialization until first call if unknown
             image_token_dim = embed_dim
         image_proj = torch.nn.Linear(image_token_dim, embed_dim, bias=False)
         image_proj.to(device=device)
@@ -52,12 +66,20 @@ class SimplePrefixVLM:
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token = tokenizer.eos_token
 
+        identity = _extract_model_identity(llm_name_or_path, llm, "fp16")
+        print(
+            "[SimplePrefixVLM] Active model: "
+            f"id={identity['model_id']}, hidden_size={identity['hidden_size']}, "
+            f"layers={identity['num_layers']}, image_proj={image_token_dim}->{embed_dim}"
+        )
+
         return cls(
             tokenizer=tokenizer,
             llm=llm,
             image_proj=image_proj,
             device=str(device),
             dtype=dtype,
+            model_identity=identity,
         )
 
     @classmethod
@@ -79,50 +101,59 @@ class SimplePrefixVLM:
         if tokenizer.pad_token_id is None:
             tokenizer.pad_token = tokenizer.eos_token
 
+        llm_name_or_path = getattr(llm, "name_or_path", "unknown")
+        identity = _extract_model_identity(llm_name_or_path, llm, "loaded")
+        print(
+            "[SimplePrefixVLM] Active model: "
+            f"id={identity['model_id']}, hidden_size={identity['hidden_size']}, "
+            f"layers={identity['num_layers']}, image_proj={image_token_dim}->{embed_dim}"
+        )
+
         return cls(
             tokenizer=tokenizer,
             llm=llm,
             image_proj=image_proj,
             device=str(device),
             dtype=dtype,
+            model_identity=identity,
         )
 
     @torch.inference_mode()
     def generate(
         self,
         *,
-        image_tokens: torch.Tensor,  # (B, N, Dv)
+        image_tokens: torch.Tensor,
         system_prompt: str,
         user_prompt: str,
         max_new_tokens: int = 64,
         temperature: float = 0.2,
+        top_k: int = 50,
+        top_p: float = 0.95,
         do_sample: bool = False,
         return_num_new_tokens: bool = False,
     ) -> Union[str, Tuple[str, int]]:
         if image_tokens.ndim != 3:
             raise ValueError(f"Expected image_tokens (B,N,D); got {tuple(image_tokens.shape)}")
 
-        b, n, dv = image_tokens.shape
+        b, _n, dv = image_tokens.shape
         if b != 1:
             raise ValueError("This minimal wrapper currently supports batch_size=1 for benchmarking simplicity.")
 
-        # Lazily adapt image projection if SigLIP dim differs from LLM embed dim.
         if self.image_proj.in_features != dv:
             self.image_proj = torch.nn.Linear(dv, self.image_proj.out_features, bias=False).to(self.device)
             if self.device == "cuda":
                 self.image_proj = self.image_proj.to(self.dtype)
             self.image_proj.eval()
 
-        img_prefix = self.image_proj(image_tokens.to(device=self.device))
+        proj_dtype = self.image_proj.weight.dtype
+        img_prefix = self.image_proj(image_tokens.to(device=self.device, dtype=proj_dtype))
         if self.device == "cuda":
             img_prefix = img_prefix.to(dtype=self.dtype)
 
         prompt = self._format_prompt(system_prompt=system_prompt, user_prompt=user_prompt)
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(self.device)
-
         text_embeds = self.llm.get_input_embeddings()(input_ids)
         inputs_embeds = torch.cat([img_prefix, text_embeds], dim=1)
-
         attn = torch.ones(inputs_embeds.shape[:2], dtype=torch.long, device=self.device)
 
         gen_kwargs = dict(
@@ -130,27 +161,22 @@ class SimplePrefixVLM:
             attention_mask=attn,
             max_new_tokens=max_new_tokens,
             do_sample=do_sample,
-            # Jetson torch builds may not include distributed/FSDP;
-            # forcing this avoids transformers probing those modules.
             synced_gpus=False,
             pad_token_id=self.tokenizer.pad_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
+            num_beams=1,
+            repetition_penalty=1.05,
         )
-        # Only pass sampling params in sampling mode to avoid warnings.
         if do_sample:
             gen_kwargs["temperature"] = temperature
+            gen_kwargs["top_k"] = top_k
+            gen_kwargs["top_p"] = top_p
         else:
-            # Keep deterministic generation_config fields at their neutral defaults
-            # to avoid warnings from checkpoints that ship sampling defaults.
             gen_kwargs["temperature"] = 1.0
             gen_kwargs["top_p"] = 1.0
             gen_kwargs["top_k"] = 50
 
         out_ids = self.llm.generate(**gen_kwargs)
-
-        # With inputs_embeds, HF generation behavior differs by version:
-        # some return full sequence ids, some return generated-only ids.
-        # Handle both robustly.
         if out_ids.shape[1] > max_new_tokens:
             gen = out_ids[0, -max_new_tokens:]
         else:
@@ -162,13 +188,11 @@ class SimplePrefixVLM:
         return text
 
     def _format_prompt(self, *, system_prompt: str, user_prompt: str) -> str:
-        # Qwen2.5-Instruct supports chat template; fall back if missing.
         if hasattr(self.tokenizer, "apply_chat_template"):
             messages = [
                 {"role": "system", "content": system_prompt.strip()},
                 {"role": "user", "content": user_prompt.strip()},
             ]
             return self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-
         return f"System: {system_prompt.strip()}\nUser: {user_prompt.strip()}\nAssistant:"
 

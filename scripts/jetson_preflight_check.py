@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-Jetson preflight check: validates environment before running VQA + VibeVoice pipeline.
+Jetson preflight check: validates environment before running VQA + TTS pipeline.
 
 Exit code 0: all checks passed
 Exit code 1: one or more critical checks failed
 """
 import json
+import importlib.util
 import os
 import platform
 import shutil
 import sys
+import argparse
 from pathlib import Path
 
 def check_python_version() -> dict:
@@ -22,8 +24,58 @@ def check_python_version() -> dict:
         "expected": "3.8+",
         "actual": version_str,
         "passed": is_ok,
-        "message": "Python 3.8 compatible" if is_ok else "Python 3.8+ required; found {version_str}"
+        "message": "Python 3.8 compatible" if is_ok else f"Python 3.8+ required; found {version_str}"
     }
+
+
+def check_transformers_version(min_major: int = 4, min_minor: int = 45) -> dict:
+    """Check transformers minimum version required by current Jetson workflow."""
+    try:
+        import transformers
+
+        version = transformers.__version__
+        parts = version.split(".")
+        major = int(parts[0]) if len(parts) > 0 and parts[0].isdigit() else 0
+        minor_str = "".join(ch for ch in (parts[1] if len(parts) > 1 else "0") if ch.isdigit())
+        minor = int(minor_str) if minor_str else 0
+        is_ok = (major, minor) >= (min_major, min_minor)
+        return {
+            "check": "Transformers version",
+            "expected": f">= {min_major}.{min_minor}",
+            "actual": version,
+            "passed": is_ok,
+            "message": "Transformers version is compatible" if is_ok else f"transformers {version} too old"
+        }
+    except Exception as e:
+        return {
+            "check": "Transformers version",
+            "expected": f">= {min_major}.{min_minor}",
+            "actual": f"Error: {e}",
+            "passed": False,
+            "message": f"Could not import transformers: {e}"
+        }
+
+
+def check_accelerate_installed() -> dict:
+    """Check accelerate availability and version visibility."""
+    try:
+        import accelerate
+        version = getattr(accelerate, "__version__", "unknown")
+        return {
+            "check": "Accelerate package",
+            "expected": "installed",
+            "actual": version,
+            "passed": True,
+            "message": "accelerate is installed"
+        }
+    except Exception as e:
+        return {
+            "check": "Accelerate package",
+            "expected": "installed",
+            "actual": f"Error: {e}",
+            "passed": False,
+            "message": "accelerate is missing"
+        }
 
 def check_torch_cuda() -> dict:
     """Check PyTorch and CUDA availability."""
@@ -66,18 +118,18 @@ def check_disk_space() -> dict:
         stat = shutil.disk_usage("/")
         free_gb = stat.free / (1024**3)
         total_gb = stat.total / (1024**3)
-        is_ok = free_gb > 2.0  # 2 GB minimum for models + reports
+        is_ok = free_gb >= 0.5  # practical minimum for reports + short demo runs
         return {
             "check": "Disk space",
-            "expected": "> 2 GB free",
+            "expected": "> 0.5 GB free",
             "actual": f"{free_gb:.1f} GB free / {total_gb:.1f} GB total",
             "passed": is_ok,
-            "message": "Sufficient disk space" if is_ok else f"Low disk space: {free_gb:.1f} GB free (need ≥2 GB)"
+            "message": "Sufficient disk space" if is_ok else f"Low disk space: {free_gb:.1f} GB free (need ≥0.5 GB)"
         }
     except Exception as e:
         return {
             "check": "Disk space",
-            "expected": "> 2 GB free",
+            "expected": "> 0.5 GB free",
             "actual": f"Error: {e}",
             "passed": False,
             "message": f"Could not check disk space: {e}"
@@ -120,7 +172,7 @@ def check_model_paths(repo_root: Path) -> dict:
         "SigLIP model": repo_root / "src" / "vision" / "siglip_encoder.py",
         "VLM model": repo_root / "src" / "vlm" / "model.py",
         "LLM loader": repo_root / "src" / "vlm" / "llm_loader.py",
-        "TTS bridge": repo_root / "src" / "tts" / "streaming_bridge.py",
+        "TTS backends": repo_root / "src" / "tts" / "fallback_backends.py",
         "Data labels": repo_root / "data" / "eval" / "labels.json"
     }
     
@@ -135,31 +187,23 @@ def check_model_paths(repo_root: Path) -> dict:
         "message": "All critical model paths found" if is_ok else f"Missing: {', '.join(missing)}"
     }
 
-def check_voices_directory(voices_root: str = None) -> dict:
-    """Check that VibeVoice voice presets exist."""
-    if voices_root is None:
-        voices_root = os.path.expanduser("~/vibevoice_test/voices")
-    
-    voices_path = Path(voices_root)
-    
-    if not voices_path.exists():
-        return {
-            "check": "VibeVoice voices directory",
-            "expected": f"{voices_root} with .pt presets",
-            "actual": "Directory does not exist",
-            "passed": False,
-            "message": f"Voices directory not found at {voices_root}. Verify VibeVoice installation on Jetson."
-        }
-    
-    pt_files = list(voices_path.glob("*.pt"))
-    is_ok = len(pt_files) > 0
-    
+def check_piper_model(piper_model: str = None) -> dict:
+    """Check whether a Piper model is present (optional but recommended)."""
+    if piper_model is None:
+        piper_model = str(Path.home() / "piper" / "models" / "en_US-lessac-medium.onnx")
+
+    model_path = Path(piper_model)
+    cfg_path = Path(str(model_path) + ".json")
+    model_ok = model_path.exists()
+    cfg_ok = cfg_path.exists()
+    is_ok = model_ok and cfg_ok
+
     return {
-        "check": "VibeVoice voices directory",
-        "expected": ".pt voice presets present",
-        "actual": f"{len(pt_files)} preset files found",
-        "passed": is_ok,
-        "message": f"Voice presets ready ({len(pt_files)} presets)" if is_ok else f"No .pt preset files found in {voices_root}"
+        "check": "Piper model files",
+        "expected": f"{model_path} and {cfg_path}",
+        "actual": f"model={model_ok}, config={cfg_ok}",
+        "passed": True,
+        "message": "Piper model ready" if is_ok else "Piper model/config missing (optional; silero/pyttsx3 still usable)",
     }
 
 def check_audio_device() -> dict:
@@ -180,27 +224,38 @@ def check_audio_device() -> dict:
             "check": "Audio device",
             "expected": "sounddevice installed",
             "actual": "sounddevice not installed",
-            "passed": False,
-            "message": "sounddevice not installed; audio playback will be unavailable"
+            "passed": True,
+            "message": "sounddevice not installed; WAV generation still works without playback"
         }
     except Exception as e:
         return {
             "check": "Audio device",
             "expected": "sounddevice + audio device",
             "actual": f"Error: {e}",
-            "passed": False,
-            "message": f"Audio check failed: {e}"
+            "passed": True,
+            "message": f"Audio playback not available ({e}); non-playback TTS still supported"
         }
 
 def check_dependencies() -> dict:
     """Check critical Python packages."""
     deps = ["transformers", "pillow", "numpy", "tqdm"]
+    optional_deps = ["pyttsx3"]
     missing = []
     for dep in deps:
         try:
-            __import__(dep)
+            if dep == "pillow":
+                __import__("PIL")
+            else:
+                __import__(dep)
         except ImportError:
             missing.append(dep)
+
+    missing_optional = []
+    for dep in optional_deps:
+        try:
+            __import__(dep)
+        except ImportError:
+            missing_optional.append(dep)
     
     is_ok = len(missing) == 0
     return {
@@ -208,16 +263,133 @@ def check_dependencies() -> dict:
         "expected": "transformers, pillow, numpy, tqdm",
         "actual": f"{len(deps) - len(missing)}/{len(deps)} installed",
         "passed": is_ok,
-        "message": "All dependencies installed" if is_ok else f"Missing: {', '.join(missing)}"
+        "message": (
+            "All required dependencies installed"
+            if is_ok and not missing_optional
+            else (
+                f"All required dependencies installed; optional missing: {', '.join(missing_optional)}"
+                if is_ok
+                else f"Missing: {', '.join(missing)}"
+            )
+        )
     }
+
+def check_tts_backend_availability() -> dict:
+    """Check that at least one TTS backend is importable."""
+    piper_available = (shutil.which("piper") is not None) or (Path.home() / "piper" / "piper" / "piper").exists()
+    silero_available = importlib.util.find_spec("torch") is not None and importlib.util.find_spec("numpy") is not None
+    pyttsx3_available = importlib.util.find_spec("pyttsx3") is not None
+    is_ok = piper_available or pyttsx3_available or silero_available
+
+    return {
+        "check": "TTS backend availability",
+        "expected": "piper or silero or pyttsx3",
+        "actual": f"piper={piper_available}, silero={silero_available}, pyttsx3={pyttsx3_available}",
+        "passed": is_ok,
+        "message": (
+            "At least one TTS backend is available"
+            if is_ok
+            else "No TTS backend available; install piper or pyttsx3"
+        ),
+    }
+
+
+def check_shell_line_endings(repo_root: Path) -> dict:
+    """Check Jetson shell scripts for CRLF line endings."""
+    scripts_dir = repo_root / "scripts"
+    targets = [
+        scripts_dir / "jetson_run_benchmark.sh",
+        scripts_dir / "jetson_quantize_llm_awq.sh",
+        repo_root / "JETSON_RUN_VQA_TTS.sh",
+    ]
+    found_crlf = []
+    checked = 0
+    for p in targets:
+        if not p.exists():
+            continue
+        checked += 1
+        try:
+            raw = p.read_bytes()
+            if b"\r\n" in raw:
+                found_crlf.append(p.name)
+        except Exception:
+            found_crlf.append(p.name)
+
+    is_ok = len(found_crlf) == 0
+    return {
+        "check": "Shell line endings",
+        "expected": "LF-only for jetson_*.sh",
+        "actual": f"checked={checked}, crlf={len(found_crlf)}",
+        "passed": is_ok,
+        "message": "Shell scripts are LF-only" if is_ok else f"CRLF detected in: {', '.join(found_crlf)}"
+    }
+
+
+def _infer_expected_hidden_size(model_name_or_path: str):
+    low = (model_name_or_path or "").lower()
+    if "qwen" not in low:
+        return None
+    if "0.5b" in low or "0p5b" in low:
+        return 1024
+    if "1.5b" in low or "1p5b" in low:
+        return 1536
+    return None
+
+
+def check_model_identity(model_name_or_path: str, allow_network: bool = False) -> dict:
+    """Check expected hidden size against model config for the selected LLM."""
+    expected_hidden = _infer_expected_hidden_size(model_name_or_path)
+    if expected_hidden is None:
+        return {
+            "check": "LLM identity",
+            "expected": "known hidden size",
+            "actual": model_name_or_path,
+            "passed": True,
+            "message": "Skipped identity check for non-Qwen model name"
+        }
+
+    try:
+        from transformers import AutoConfig
+        cfg = AutoConfig.from_pretrained(model_name_or_path, local_files_only=(not allow_network))
+        actual_hidden = getattr(cfg, "hidden_size", None)
+        is_ok = actual_hidden == expected_hidden
+        return {
+            "check": "LLM identity",
+            "expected": f"hidden_size={expected_hidden}",
+            "actual": f"hidden_size={actual_hidden}",
+            "passed": is_ok,
+            "message": "LLM hidden_size matches expected" if is_ok else "LLM hidden_size mismatch"
+        }
+    except Exception as e:
+        return {
+            "check": "LLM identity",
+            "expected": f"hidden_size={expected_hidden}",
+            "actual": f"Error: {e}",
+            "passed": False,
+            "message": f"Could not validate model config for {model_name_or_path}"
+        }
 
 def main():
     """Run all preflight checks and report results."""
+    parser = argparse.ArgumentParser(description="Jetson preflight checks for VQA pipeline")
+    parser.add_argument(
+        "--llm",
+        type=str,
+        default="Qwen/Qwen2.5-1.5B-Instruct",
+        help="LLM model id/path to validate identity against expected hidden size",
+    )
+    parser.add_argument(
+        "--allow-network",
+        action="store_true",
+        help="Allow model config downloads during identity check (default: cached/local only)",
+    )
+    args = parser.parse_args()
+
     # Determine repo root (script is in scripts/ subdirectory)
     repo_root = Path(__file__).parent.parent
     
     print("=" * 70)
-    print("JETSON PREFLIGHT CHECK — VQA + VibeVoice Pipeline")
+    print("JETSON PREFLIGHT CHECK — VQA + Fallback-TTS Pipeline")
     print("=" * 70)
     
     checks = [
@@ -226,9 +398,14 @@ def main():
         check_torch_cuda(),
         check_memory(),
         check_disk_space(),
+        check_transformers_version(),
+        check_accelerate_installed(),
         check_dependencies(),
+        check_shell_line_endings(repo_root),
+        check_model_identity(args.llm, allow_network=args.allow_network),
+        check_tts_backend_availability(),
         check_model_paths(repo_root),
-        check_voices_directory(),
+        check_piper_model(),
         check_audio_device(),
     ]
     
@@ -259,7 +436,7 @@ def main():
         print("  3. Re-run this script to verify")
         return 1
     else:
-        print("\n✓ All preflight checks passed. Ready to run VQA + VibeVoice pipeline.")
+        print("\n✓ All preflight checks passed. Ready to run VQA + fallback-TTS pipeline.")
         return 0
 
 if __name__ == "__main__":

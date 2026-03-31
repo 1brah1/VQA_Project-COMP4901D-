@@ -41,57 +41,63 @@ def save_wav(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # Ensure audio is float32
+    # Ensure audio is float32 and finite.
     audio = np.asarray(audio, dtype=np.float32)
-    
-    # Try scipy first (most common)
-    try:
-        import scipy.io.wavfile
-        scipy.io.wavfile.write(str(output_path), sample_rate, audio)
+    if audio.size == 0:
         if verbose:
-            print(f"[audio] Saved WAV using scipy.io.wavfile: {output_path}")
-        return True
-    except ImportError:
-        pass
-    except Exception as e:
+            print("[audio] Empty audio buffer; skipping WAV save")
+        return False
+
+    finite_mask = np.isfinite(audio)
+    if not bool(finite_mask.any()):
         if verbose:
-            print(f"[audio] scipy.io.wavfile failed: {e}")
-    
-    # Try soundfile
-    try:
-        import soundfile
-        soundfile.write(str(output_path), audio, sample_rate)
+            print("[audio] Audio buffer is non-finite (all NaN/Inf); skipping WAV save")
+        return False
+    if not bool(finite_mask.all()):
+        audio = np.nan_to_num(audio, nan=0.0, posinf=1.0, neginf=-1.0)
+
+    peak = float(np.max(np.abs(audio))) if audio.size else 0.0
+    if peak > 1.0:
+        audio = audio / peak
+
+    # Always write PCM16 for broad player compatibility.
+    audio_int16 = np.clip(audio * 32767.0, -32768.0, 32767.0).astype(np.int16)
+
+    # Treat all-zero audio as synthesis failure, not a valid artifact.
+    if not np.any(audio_int16):
         if verbose:
-            print(f"[audio] Saved WAV using soundfile: {output_path}")
-        return True
-    except ImportError:
-        pass
-    except Exception as e:
-        if verbose:
-            print(f"[audio] soundfile failed: {e}")
-    
-    # Fallback to wave module (stdlib)
+            print("[audio] Audio buffer is fully silent (all zeros); skipping WAV save")
+        return False
+
+    # Use stdlib wave for deterministic PCM output.
     try:
         import wave
-        
-        # wave module expects int16
-        audio_int16 = np.clip(audio * 32767, -32768, 32767).astype(np.int16)
-        
-        n_channels = audio_int16.ndim if audio_int16.ndim > 1 else 1
-        n_frames = len(audio_int16)
-        sample_width = 2  # 16-bit = 2 bytes
-        
+
+        n_channels = int(audio_int16.shape[1]) if audio_int16.ndim > 1 else 1
+        sample_width = 2  # 16-bit PCM
+
         with wave.open(str(output_path), "w") as wav:
             wav.setnchannels(n_channels)
             wav.setsampwidth(sample_width)
             wav.setframerate(sample_rate)
             wav.writeframes(audio_int16.tobytes())
-        
+
         if verbose:
             print(f"[audio] Saved WAV using wave module: {output_path}")
         return True
     except Exception as e:
         if verbose:
             print(f"[audio] wave module failed: {e}")
-    
+
+    # Fallback: attempt scipy with int16.
+    try:
+        import scipy.io.wavfile
+        scipy.io.wavfile.write(str(output_path), sample_rate, audio_int16)
+        if verbose:
+            print(f"[audio] Saved WAV using scipy.io.wavfile fallback: {output_path}")
+        return True
+    except Exception as e:
+        if verbose:
+            print(f"[audio] scipy fallback failed: {e}")
+
     return False

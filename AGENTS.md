@@ -60,6 +60,19 @@ pip install -r requirements-jetson.txt
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 ```
 
+### 1.5B preflight (recommended before any full run)
+
+Use the preflight checker with explicit 1.5B identity validation:
+
+```bash
+python scripts/jetson_preflight_check.py --llm Qwen/Qwen2.5-1.5B-Instruct
+```
+
+Notes:
+- By default, identity check uses local/cached files only (`local_files_only=True`) to avoid long hangs.
+- If the model config is not cached yet and you want online fetch, add `--allow-network`.
+- The integrated runner now validates expected hidden size for known Qwen model names and fails fast on mismatch.
+
 ---
 
 ## 5. Running inference once
