@@ -392,6 +392,12 @@ def run_one_image(
             output_dir.mkdir(parents=True, exist_ok=True)
             wav_name = f"{sample_id or Path(image_path).stem}.wav"
             wav_path = str(output_dir / wav_name)
+            candidate = Path(wav_path)
+            if candidate.exists():
+                try:
+                    candidate.unlink()
+                except Exception:
+                    pass
             if fallback_tts.synthesize_to_wav(spoken_sentence, wav_path):
                 backend = fallback_tts.last_backend_used or "fallback"
                 print(f"  WAV saved via {backend} fallback: {wav_path}")
@@ -399,7 +405,6 @@ def run_one_image(
                 if fallback_tts.last_error:
                     print(f"  WARNING: fallback TTS failed ({fallback_tts.last_error})")
                 # Some engines finish writing slightly after the call returns.
-                candidate = Path(wav_path)
                 late_ok = False
                 for _ in range(12):
                     if candidate.exists() and candidate.stat().st_size > 0:

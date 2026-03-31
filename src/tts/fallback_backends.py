@@ -126,13 +126,51 @@ class SileroTTSBackend:
 
     def _try_load(self) -> bool:
         try:
-            model, _ = torch.hub.load(
-                repo_or_dir="snakers4/silero-models",
-                model="silero_tts",
-                language=self.language,
-                speaker=self.speaker_model,
-            )
-            model = model.to(self.device)
+            # Ensure silero's local repo path takes precedence over this repo's `src` package.
+            import os
+            import sys
+
+            hub_dir = Path(torch.hub.get_dir()) / "snakers4_silero-models_master"
+            repo_root = Path(__file__).resolve().parents[2]
+            sys_path_snapshot = list(sys.path)
+            removed_src_modules = {}
+
+            def _safe_resolve(path_entry: str) -> Path:
+                try:
+                    return Path(path_entry).resolve()
+                except Exception:
+                    return Path(path_entry)
+            sys.path = [
+                entry
+                for entry in sys.path
+                if _safe_resolve(entry) != repo_root
+            ]
+            if hub_dir.exists():
+                sys.path.insert(0, str(hub_dir))
+            repo_arg = str(hub_dir) if hub_dir.exists() else "snakers4/silero-models"
+            cwd = os.getcwd()
+            try:
+                # Remove local src modules so hubconf can import silero's src package.
+                for name in list(sys.modules.keys()):
+                    if name == "src" or name.startswith("src."):
+                        removed_src_modules[name] = sys.modules.pop(name)
+                if hub_dir.exists():
+                    os.chdir(hub_dir)
+                load_kwargs = {"source": "local"} if hub_dir.exists() else {}
+                result = torch.hub.load(
+                    repo_or_dir=repo_arg,
+                    model="silero_tts",
+                    language=self.language,
+                    speaker=self.speaker_model,
+                    **load_kwargs,
+                )
+                model = result[0] if isinstance(result, (tuple, list)) else result
+            finally:
+                os.chdir(cwd)
+                sys.path[:] = sys_path_snapshot
+                for name, module in removed_src_modules.items():
+                    sys.modules[name] = module
+            model.to(self.device)
             self._model = model
             self._last_error = None
             return True

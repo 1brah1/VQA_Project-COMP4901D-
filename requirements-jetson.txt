@@ -6,3 +6,4 @@ tqdm
 psutil
 sounddevice
 pyttsx3
+omegaconf
