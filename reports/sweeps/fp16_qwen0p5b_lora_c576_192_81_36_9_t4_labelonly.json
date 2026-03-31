@@ -1,0 +1,3224 @@
+{
+  "device": "cuda",
+  "dtype": "torch.float16",
+  "siglip": "google/siglip-base-patch16-384",
+  "llm": "Qwen/Qwen2.5-0.5B-Instruct",
+  "lora_adapter": "models/lora_accessibility_vqa_0p5b",
+  "image_proj": "models/lora_accessibility_vqa_0p5b/image_proj.pt",
+  "llm_mode": "fp16",
+  "seed": 42,
+  "generation_config": {
+    "max_new_tokens": 4,
+    "do_sample": false,
+    "temperature": 0.2,
+    "top_k": 50,
+    "top_p": 0.95
+  },
+  "model_identity": {
+    "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+    "mode": "fp16",
+    "hidden_size": 896,
+    "num_layers": 24,
+    "vocab_size": 151936,
+    "dtype": "torch.float16",
+    "requested_dtype": "torch.float16",
+    "effective_dtype": "torch.float16"
+  },
+  "expected_hidden_size": 896,
+  "benchmark_config": {
+    "max_new_tokens_used": 4,
+    "max_new_tokens_default": 32,
+    "max_new_tokens_eval": 4,
+    "prompt_style": "label_only",
+    "image_proj": "models/lora_accessibility_vqa_0p5b/image_proj.pt",
+    "metrics": {
+      "accuracy_scored": "only items where gt AND pred are both not 'unknown'; fraction that match",
+      "accuracy_gt_known": "all items with gt != 'unknown'; pred must match gt (unknown pred = wrong)",
+      "unknown_rate": "fraction of gt-known items where prediction is 'unknown'",
+      "by_task": "same metrics split by labels task (crosswalk_signal, stairs, obstacles)",
+      "n_gen_tokens": "count of token ids passed to decode after generate()"
+    }
+  },
+  "compression": {
+    "576": {
+      "n_items": 28,
+      "n_scored": 28,
+      "accuracy_scored": 0.75,
+      "n_gt_known": 28,
+      "correct_gt_known": 21,
+      "accuracy_gt_known": 0.75,
+      "unknown_rate": 0.0,
+      "accuracy_overall": 0.75,
+      "by_task": {
+        "crosswalk_signal": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 7,
+          "accuracy_gt_known": 0.7777777777777778,
+          "n_scored": 9,
+          "accuracy_scored": 0.7777777777777778,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "obstacles": {
+          "n_items": 10,
+          "n_gt_known": 10,
+          "correct_gt_known": 6,
+          "accuracy_gt_known": 0.6,
+          "n_scored": 10,
+          "accuracy_scored": 0.6,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "stairs": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 8,
+          "accuracy_gt_known": 0.8888888888888888,
+          "n_scored": 9,
+          "accuracy_scored": 0.8888888888888888,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        }
+      },
+      "timing_s": {
+        "encode": {
+          "mean": 0.04480915068000156,
+          "p50": 0.04405142000177875,
+          "p95": 0.04928702724864706
+        },
+        "compress": {
+          "mean": 1.934589194466493e-05,
+          "p50": 1.8816979718394578e-05,
+          "p95": 2.1311410819180306e-05
+        },
+        "llm": {
+          "mean": 0.8375229458553284,
+          "p50": 0.852020371996332,
+          "p95": 0.8578465617902111
+        },
+        "total": {
+          "mean": 0.8823629981062757,
+          "p50": 0.8960475015046541,
+          "p95": 0.9052407677590963
+        }
+      },
+      "gen_new_tokens": {
+        "mean": 3.857142857142857,
+        "p50": 4.0,
+        "p95": 4.0,
+        "max": 4
+      },
+      "peak_mem_mb": 3464.73828125,
+      "items": [
+        {
+          "id": "Crosswalk_1",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_1.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04651378400740214,
+            "compress": 1.9105005776509643e-05,
+            "llm": 0.8811346770089585,
+            "total": 0.9276799820072483
+          }
+        },
+        {
+          "id": "Crosswalk_2",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_2.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04751183002372272,
+            "compress": 4.2561994632706046e-05,
+            "llm": 0.8586170559865423,
+            "total": 0.9061830640130211
+          }
+        },
+        {
+          "id": "Crosswalk_3",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_3.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04704493601457216,
+            "compress": 1.87849800568074e-05,
+            "llm": 0.8564156439970247,
+            "total": 0.9034907890018076
+          }
+        },
+        {
+          "id": "Crosswalk_4",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_4.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04434027700335719,
+            "compress": 2.0000996300950646e-05,
+            "llm": 0.8538836299849208,
+            "total": 0.8982559719879646
+          }
+        },
+        {
+          "id": "Crosswalk_5",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_5.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.0441135180008132,
+            "compress": 1.9521015929058194e-05,
+            "llm": 0.8521518330089748,
+            "total": 0.8962964880047366
+          }
+        },
+        {
+          "id": "Stairs_1",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_1.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no ) no/no",
+          "response_length_chars": 10,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.03953340899897739,
+            "compress": 1.8335995264351368e-05,
+            "llm": 0.8500691130175255,
+            "total": 0.8896326340036467
+          }
+        },
+        {
+          "id": "Stairs_2",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes green green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.042767748003825545,
+            "compress": 1.8848979379981756e-05,
+            "llm": 0.8500861049978994,
+            "total": 0.8928859180014115
+          }
+        },
+        {
+          "id": "Stairs_3",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_3.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.043163280992303044,
+            "compress": 1.9231985788792372e-05,
+            "llm": 0.8536806150223128,
+            "total": 0.8968750970088877
+          }
+        },
+        {
+          "id": "Stairs_4",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_4.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes\n yes",
+          "response_length_chars": 8,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.0431864180136472,
+            "compress": 1.94240128621459e-05,
+            "llm": 0.8527945719833951,
+            "total": 0.8960127670143265
+          }
+        },
+        {
+          "id": "Stairs_5",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_5.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04188432899536565,
+            "compress": 1.846501254476607e-05,
+            "llm": 0.8491222989978269,
+            "total": 0.8910373809922021
+          }
+        },
+        {
+          "id": "Obstacle_1",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_1.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.05079970700899139,
+            "compress": 1.9777013221755624e-05,
+            "llm": 0.8523208620026708,
+            "total": 0.9031527620099951
+          }
+        },
+        {
+          "id": "Obstacle_2",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes\n green",
+          "response_length_chars": 14,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.0439893220027443,
+            "compress": 1.9553001038730145e-05,
+            "llm": 0.8514075209968723,
+            "total": 0.8954293239803519
+          }
+        },
+        {
+          "id": "Obstacle_3",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_3.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no: no",
+          "response_length_chars": 6,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04825390098267235,
+            "compress": 1.9584986148402095e-05,
+            "llm": 0.8529055189865176,
+            "total": 0.901190653006779
+          }
+        },
+        {
+          "id": "Obstacle_4",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_4.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "no|.\n no |",
+          "response_length_chars": 10,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04629716899944469,
+            "compress": 1.8655991880223155e-05,
+            "llm": 0.850656872993568,
+            "total": 0.896985434985254
+          }
+        },
+        {
+          "id": "Obstacle_5",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_5.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no green",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.049843326007248834,
+            "compress": 1.87849800568074e-05,
+            "llm": 0.852296987985028,
+            "total": 0.902169786975719
+          }
+        },
+        {
+          "id": "Obstacle_6",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_6.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no is",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04382998897926882,
+            "compress": 1.9553001038730145e-05,
+            "llm": 0.8524437439918984,
+            "total": 0.8963054780033417
+          }
+        },
+        {
+          "id": "Crosswalk_6",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_6.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "red green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04528993900748901,
+            "compress": 1.657599932514131e-05,
+            "llm": 0.8502642850216944,
+            "total": 0.8955824490112718
+          }
+        },
+        {
+          "id": "Crosswalk_7",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_7.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04566098900977522,
+            "compress": 1.868899562396109e-05,
+            "llm": 0.8518889109836891,
+            "total": 0.8975804609945044
+          }
+        },
+        {
+          "id": "Crosswalk_8",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_8.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "red green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04550955997547135,
+            "compress": 2.201701863668859e-05,
+            "llm": 0.8531489179877099,
+            "total": 0.8986918239970692
+          }
+        },
+        {
+          "id": "Crosswalk_9",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_9.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04492595899500884,
+            "compress": 1.964901457540691e-05,
+            "llm": 0.8510113160009496,
+            "total": 0.8959686039888766
+          }
+        },
+        {
+          "id": "Stairs_6",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_6.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04549394501373172,
+            "compress": 1.951999729499221e-05,
+            "llm": 0.634188226016704,
+            "total": 0.6797140109993052
+          }
+        },
+        {
+          "id": "Stairs_7",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_7.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no E NO/C",
+          "response_length_chars": 9,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04341375199146569,
+            "compress": 1.699299900792539e-05,
+            "llm": 0.8503490549919661,
+            "total": 0.8937900720047764
+          }
+        },
+        {
+          "id": "Stairs_8",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no -> no is",
+          "response_length_chars": 11,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.0434387770073954,
+            "compress": 1.6000994946807623e-05,
+            "llm": 0.8496602340019308,
+            "total": 0.8931256360083353
+          }
+        },
+        {
+          "id": "Stairs_9",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_9.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04352140400442295,
+            "compress": 1.6865000361576676e-05,
+            "llm": 0.634700081020128,
+            "total": 0.6782483659917489
+          }
+        },
+        {
+          "id": "Obstacle_7",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_7.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes green green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.043439289001980796,
+            "compress": 1.641598646529019e-05,
+            "llm": 0.8494085459969938,
+            "total": 0.8928746199817397
+          }
+        },
+        {
+          "id": "Obstacle_8",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no ) no no",
+          "response_length_chars": 10,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04371043399441987,
+            "compress": 1.5583995264023542e-05,
+            "llm": 0.8523094349948224,
+            "total": 0.8960455660126172
+          }
+        },
+        {
+          "id": "Obstacle_9",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_9.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes green green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04346428200369701,
+            "compress": 1.676901592873037e-05,
+            "llm": 0.851418398990063,
+            "total": 0.8949093699920923
+          }
+        },
+        {
+          "id": "Obstacle_10",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_10.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no no no no",
+          "response_length_chars": 11,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.043714945000829175,
+            "compress": 1.6417005099356174e-05,
+            "llm": 0.8523080269806087,
+            "total": 0.8960494369966909
+          }
+        }
+      ]
+    },
+    "192": {
+      "n_items": 28,
+      "n_scored": 28,
+      "accuracy_scored": 0.6785714285714286,
+      "n_gt_known": 28,
+      "correct_gt_known": 19,
+      "accuracy_gt_known": 0.6785714285714286,
+      "unknown_rate": 0.0,
+      "accuracy_overall": 0.6785714285714286,
+      "by_task": {
+        "crosswalk_signal": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 7,
+          "accuracy_gt_known": 0.7777777777777778,
+          "n_scored": 9,
+          "accuracy_scored": 0.7777777777777778,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "obstacles": {
+          "n_items": 10,
+          "n_gt_known": 10,
+          "correct_gt_known": 6,
+          "accuracy_gt_known": 0.6,
+          "n_scored": 10,
+          "accuracy_scored": 0.6,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "stairs": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 6,
+          "accuracy_gt_known": 0.6666666666666666,
+          "n_scored": 9,
+          "accuracy_scored": 0.6666666666666666,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        }
+      },
+      "timing_s": {
+        "encode": {
+          "mean": 0.04530917510315443,
+          "p50": 0.04502312999102287,
+          "p95": 0.05010399608581793
+        },
+        "compress": {
+          "mean": 0.0002552477931853251,
+          "p50": 0.0002494790096534416,
+          "p95": 0.0002724976118770428
+        },
+        "llm": {
+          "mean": 0.5388942862835913,
+          "p50": 0.5578511054918636,
+          "p95": 0.5614415806965554
+        },
+        "total": {
+          "mean": 0.5844710503962622,
+          "p50": 0.6035620645125164,
+          "p95": 0.6098557734527276
+        }
+      },
+      "gen_new_tokens": {
+        "mean": 3.8214285714285716,
+        "p50": 4.0,
+        "p95": 4.0,
+        "max": 4
+      },
+      "peak_mem_mb": 3464.78125,
+      "items": [
+        {
+          "id": "Crosswalk_1",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_1.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.05031453998526558,
+            "compress": 0.0003622510121203959,
+            "llm": 0.5553183410083875,
+            "total": 0.6060077739821281
+          }
+        },
+        {
+          "id": "Crosswalk_2",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_2.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green ' '",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04767020299914293,
+            "compress": 0.00025207200087606907,
+            "llm": 0.5620167230081279,
+            "total": 0.6099514469970018
+          }
+        },
+        {
+          "id": "Crosswalk_3",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_3.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red| red|",
+          "response_length_chars": 9,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04643547799787484,
+            "compress": 0.00025162301608361304,
+            "llm": 0.5591206979879644,
+            "total": 0.6058192880009301
+          }
+        },
+        {
+          "id": "Crosswalk_4",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_4.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044393431016942486,
+            "compress": 0.0002517829998396337,
+            "llm": 0.5596361059870105,
+            "total": 0.6042943130014464
+          }
+        },
+        {
+          "id": "Crosswalk_5",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_5.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04471910500433296,
+            "compress": 0.0002511110214982182,
+            "llm": 0.5593037749931682,
+            "total": 0.6042860879970249
+          }
+        },
+        {
+          "id": "Stairs_1",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_1.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no no green no",
+          "response_length_chars": 14,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.039511999988462776,
+            "compress": 0.00024903201847337186,
+            "llm": 0.5591342670086306,
+            "total": 0.5989079390128609
+          }
+        },
+        {
+          "id": "Stairs_2",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes",
+          "response_length_chars": 7,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 3,
+          "timing_s": {
+            "encode": 0.042830726015381515,
+            "compress": 0.00025012000696733594,
+            "llm": 0.4487242439936381,
+            "total": 0.4918172179895919
+          }
+        },
+        {
+          "id": "Stairs_3",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_3.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes",
+          "response_length_chars": 7,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 3,
+          "timing_s": {
+            "encode": 0.04329176398459822,
+            "compress": 0.00025524001102894545,
+            "llm": 0.449398440978257,
+            "total": 0.4929579249874223
+          }
+        },
+        {
+          "id": "Stairs_4",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_4.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no",
+          "response_length_chars": 6,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 3,
+          "timing_s": {
+            "encode": 0.0440407790010795,
+            "compress": 0.00025876000290736556,
+            "llm": 0.4486796020064503,
+            "total": 0.4929910140053835
+          }
+        },
+        {
+          "id": "Stairs_5",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_5.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04131083897664212,
+            "compress": 0.00024890401982702315,
+            "llm": 0.33929479599464685,
+            "total": 0.38086676300736144
+          }
+        },
+        {
+          "id": "Obstacle_1",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_1.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.05113757398794405,
+            "compress": 0.00025248798192478716,
+            "llm": 0.559748972998932,
+            "total": 0.6111518669931684
+          }
+        },
+        {
+          "id": "Obstacle_2",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_2.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no yes",
+          "response_length_chars": 13,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04361778998281807,
+            "compress": 0.0002674640272744,
+            "llm": 0.5570271610049531,
+            "total": 0.600925057020504
+          }
+        },
+        {
+          "id": "Obstacle_3",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_3.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no  no )",
+          "response_length_chars": 8,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.048594327992759645,
+            "compress": 0.00027520800358615816,
+            "llm": 0.5607963660149835,
+            "total": 0.6096780940133613
+          }
+        },
+        {
+          "id": "Obstacle_4",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_4.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no yes",
+          "response_length_chars": 13,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04605181797523983,
+            "compress": 0.0002452240150887519,
+            "llm": 0.5565968759765383,
+            "total": 0.6029061739973258
+          }
+        },
+        {
+          "id": "Obstacle_5",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_5.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.049712985986843705,
+            "compress": 0.00024720700457692146,
+            "llm": 0.5556932319886982,
+            "total": 0.6056653619743884
+          }
+        },
+        {
+          "id": "Obstacle_6",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_6.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes green green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04352543500135653,
+            "compress": 0.0002511120110284537,
+            "llm": 0.5617890039866325,
+            "total": 0.6055783519987017
+          }
+        },
+        {
+          "id": "Crosswalk_6",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_6.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045528760994784534,
+            "compress": 0.0002456720103509724,
+            "llm": 0.55713622001349,
+            "total": 0.602924733015243
+          }
+        },
+        {
+          "id": "Crosswalk_7",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_7.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "red red green green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045217455975944176,
+            "compress": 0.00024500000290572643,
+            "llm": 0.5568937170028221,
+            "total": 0.6023679490026552
+          }
+        },
+        {
+          "id": "Crosswalk_8",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_8.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "red green red green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044986056978814304,
+            "compress": 0.0002482630079612136,
+            "llm": 0.5577680149872322,
+            "total": 0.6030135040055029
+          }
+        },
+        {
+          "id": "Crosswalk_9",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_9.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "red green red green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04454684298252687,
+            "compress": 0.00024720700457692146,
+            "llm": 0.5570467130164616,
+            "total": 0.6018532760208473
+          }
+        },
+        {
+          "id": "Stairs_6",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_6.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green yes",
+          "response_length_chars": 16,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04498288899776526,
+            "compress": 0.00024698401102796197,
+            "llm": 0.5571315479755867,
+            "total": 0.6023741249809973
+          }
+        },
+        {
+          "id": "Stairs_7",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_7.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no\n no",
+          "response_length_chars": 6,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04531605102238245,
+            "compress": 0.00024944700999185443,
+            "llm": 0.5590964720176999,
+            "total": 0.6046742590260692
+          }
+        },
+        {
+          "id": "Stairs_8",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no\n no.",
+          "response_length_chars": 7,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04526062501827255,
+            "compress": 0.00024932000087574124,
+            "llm": 0.5581543309963308,
+            "total": 0.6036767240148038
+          }
+        },
+        {
+          "id": "Stairs_9",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_9.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no yes green",
+          "response_length_chars": 16,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04497373598860577,
+            "compress": 0.00025296799140051007,
+            "llm": 0.5592333719832823,
+            "total": 0.6044720770150889
+          }
+        },
+        {
+          "id": "Obstacle_7",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_7.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045060203003231436,
+            "compress": 0.0002465680008754134,
+            "llm": 0.5587201080052182,
+            "total": 0.6040391680144239
+          }
+        },
+        {
+          "id": "Obstacle_8",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no no no no",
+          "response_length_chars": 11,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04525227300473489,
+            "compress": 0.0002495110093150288,
+            "llm": 0.557934195996495,
+            "total": 0.603447405010229
+          }
+        },
+        {
+          "id": "Obstacle_9",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_9.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes green green",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044935815007193014,
+            "compress": 0.0002474950160831213,
+            "llm": 0.5607836279959884,
+            "total": 0.605979483021656
+          }
+        },
+        {
+          "id": "Obstacle_10",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_10.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "yes no no green",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04543739801738411,
+            "compress": 0.0002489039907231927,
+            "llm": 0.5568630910129286,
+            "total": 0.6025620329892263
+          }
+        }
+      ]
+    },
+    "81": {
+      "n_items": 28,
+      "n_scored": 28,
+      "accuracy_scored": 0.6428571428571429,
+      "n_gt_known": 28,
+      "correct_gt_known": 18,
+      "accuracy_gt_known": 0.6428571428571429,
+      "unknown_rate": 0.0,
+      "accuracy_overall": 0.6428571428571429,
+      "by_task": {
+        "crosswalk_signal": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 7,
+          "accuracy_gt_known": 0.7777777777777778,
+          "n_scored": 9,
+          "accuracy_scored": 0.7777777777777778,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "obstacles": {
+          "n_items": 10,
+          "n_gt_known": 10,
+          "correct_gt_known": 7,
+          "accuracy_gt_known": 0.7,
+          "n_scored": 10,
+          "accuracy_scored": 0.7,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "stairs": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 4,
+          "accuracy_gt_known": 0.4444444444444444,
+          "n_scored": 9,
+          "accuracy_scored": 0.4444444444444444,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        }
+      },
+      "timing_s": {
+        "encode": {
+          "mean": 0.045350305429435266,
+          "p50": 0.04523051201249473,
+          "p95": 0.05020650170336012
+        },
+        "compress": {
+          "mean": 0.00024658007272851786,
+          "p50": 0.000244743496295996,
+          "p95": 0.0002600028470624238
+        },
+        "llm": {
+          "mean": 0.500903762568279,
+          "p50": 0.52393982099602,
+          "p95": 0.5266115743375849
+        },
+        "total": {
+          "mean": 0.5465128795019284,
+          "p50": 0.5689988080121111,
+          "p95": 0.5762414038486895
+        }
+      },
+      "gen_new_tokens": {
+        "mean": 3.7857142857142856,
+        "p50": 4.0,
+        "p95": 4.0,
+        "max": 4
+      },
+      "peak_mem_mb": 3465.65234375,
+      "items": [
+        {
+          "id": "Crosswalk_1",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_1.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.050076165003702044,
+            "compress": 0.00025037600426003337,
+            "llm": 0.5265352779824752,
+            "total": 0.5768749070120975
+          }
+        },
+        {
+          "id": "Crosswalk_2",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_2.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.047716188011690974,
+            "compress": 0.00024704699171707034,
+            "llm": 0.5241459250100888,
+            "total": 0.5721202330023516
+          }
+        },
+        {
+          "id": "Crosswalk_3",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_3.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red| red|",
+          "response_length_chars": 9,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04645480599720031,
+            "compress": 0.00024263100931420922,
+            "llm": 0.5250296629965305,
+            "total": 0.5717387489858083
+          }
+        },
+        {
+          "id": "Crosswalk_4",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_4.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red| green|",
+          "response_length_chars": 11,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04381990898400545,
+            "compress": 0.0002467920130584389,
+            "llm": 0.5232626970100682,
+            "total": 0.567341206013225
+          }
+        },
+        {
+          "id": "Crosswalk_5",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_5.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04416587101877667,
+            "compress": 0.00024125599884428084,
+            "llm": 0.5228029709833208,
+            "total": 0.5672213300131261
+          }
+        },
+        {
+          "id": "Stairs_1",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_1.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no no no no",
+          "response_length_chars": 11,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.039261208003154024,
+            "compress": 0.00023994300863705575,
+            "llm": 0.5266526569903363,
+            "total": 0.56616580899572
+          }
+        },
+        {
+          "id": "Stairs_2",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04316414400818758,
+            "compress": 0.0002486160083208233,
+            "llm": 0.3039519469894003,
+            "total": 0.34737728399340995
+          }
+        },
+        {
+          "id": "Stairs_3",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_3.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.043001322977943346,
+            "compress": 0.0002468879974912852,
+            "llm": 0.5239657259953674,
+            "total": 0.5672262570005842
+          }
+        },
+        {
+          "id": "Stairs_4",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_4.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no yes yes",
+          "response_length_chars": 14,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.043448345008073375,
+            "compress": 0.00024976799613796175,
+            "llm": 0.5233241069945507,
+            "total": 0.5670351159933489
+          }
+        },
+        {
+          "id": "Stairs_5",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_5.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green ok",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04131064799730666,
+            "compress": 0.00024096699780784547,
+            "llm": 0.524594641989097,
+            "total": 0.5661576169950422
+          }
+        },
+        {
+          "id": "Obstacle_1",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_1.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no",
+          "response_length_chars": 9,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.050937952008098364,
+            "compress": 0.00024471100186929107,
+            "llm": 0.5257963740150444,
+            "total": 0.5769914539996535
+          }
+        },
+        {
+          "id": "Obstacle_2",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes",
+          "response_length_chars": 7,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 3,
+          "timing_s": {
+            "encode": 0.04406190101872198,
+            "compress": 0.000242727022850886,
+            "llm": 0.41532731099869125,
+            "total": 0.45964323499356396
+          }
+        },
+        {
+          "id": "Obstacle_3",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_3.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no ) no",
+          "response_length_chars": 7,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04825255699688569,
+            "compress": 0.00024291902082040906,
+            "llm": 0.5247749669943005,
+            "total": 0.5732820600096602
+          }
+        },
+        {
+          "id": "Obstacle_4",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_4.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no ice",
+          "response_length_chars": 13,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04616132500814274,
+            "compress": 0.00024455098900943995,
+            "llm": 0.5251756839861628,
+            "total": 0.5715947120042983
+          }
+        },
+        {
+          "id": "Obstacle_5",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_5.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no nocue",
+          "response_length_chars": 12,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.050276683003176004,
+            "compress": 0.00024141601170413196,
+            "llm": 0.5238120249996427,
+            "total": 0.574341931991512
+          }
+        },
+        {
+          "id": "Obstacle_6",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_6.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes. yes",
+          "response_length_chars": 12,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044204559992067516,
+            "compress": 0.0002447109727654606,
+            "llm": 0.5247469340101816,
+            "total": 0.5692085580085404
+          }
+        },
+        {
+          "id": "Crosswalk_6",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_6.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "red red green red",
+          "response_length_chars": 17,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04530897899530828,
+            "compress": 0.00024551100796088576,
+            "llm": 0.5239139159966726,
+            "total": 0.5694808549887966
+          }
+        },
+        {
+          "id": "Crosswalk_7",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_7.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "red red green red",
+          "response_length_chars": 17,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045362003991613165,
+            "compress": 0.00026279198937118053,
+            "llm": 0.5236544840154238,
+            "total": 0.5692913770035375
+          }
+        },
+        {
+          "id": "Crosswalk_8",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_8.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "green green red red",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04516593398875557,
+            "compress": 0.00026835998869501054,
+            "llm": 0.5228267460188363,
+            "total": 0.5682737130264286
+          }
+        },
+        {
+          "id": "Crosswalk_9",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_9.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "green red green red",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04500388100859709,
+            "compress": 0.00024490398936904967,
+            "llm": 0.5240863380022347,
+            "total": 0.5693462270137388
+          }
+        },
+        {
+          "id": "Stairs_6",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_6.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045483735972084105,
+            "compress": 0.0002497999812476337,
+            "llm": 0.5246312499803025,
+            "total": 0.5703782589989714
+          }
+        },
+        {
+          "id": "Stairs_7",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_7.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no\n no )",
+          "response_length_chars": 8,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04505335399881005,
+            "compress": 0.0002427909930702299,
+            "llm": 0.5253652249812149,
+            "total": 0.5706731789978221
+          }
+        },
+        {
+          "id": "Stairs_8",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no\n no",
+          "response_length_chars": 6,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045557050994830206,
+            "compress": 0.00025482301134616137,
+            "llm": 0.5221329649793915,
+            "total": 0.5679578960116487
+          }
+        },
+        {
+          "id": "Stairs_9",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_9.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no green",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04544232599437237,
+            "compress": 0.00024477599072270095,
+            "llm": 0.5293651559913997,
+            "total": 0.5750648979737889
+          }
+        },
+        {
+          "id": "Obstacle_7",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_7.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes green",
+          "response_length_chars": 9,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 3,
+          "timing_s": {
+            "encode": 0.04523000001790933,
+            "compress": 0.00024128801305778325,
+            "llm": 0.4146113519964274,
+            "total": 0.46009611201588996
+          }
+        },
+        {
+          "id": "Obstacle_8",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no no no no",
+          "response_length_chars": 11,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04523102400708012,
+            "compress": 0.0002423750120215118,
+            "llm": 0.5233036249992438,
+            "total": 0.5687890580156818
+          }
+        },
+        {
+          "id": "Obstacle_9",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_9.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04522971200640313,
+            "compress": 0.0002473680069670081,
+            "llm": 0.3050381560169626,
+            "total": 0.3505283879931085
+          }
+        },
+        {
+          "id": "Obstacle_10",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_10.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04542696601129137,
+            "compress": 0.00024413500796072185,
+            "llm": 0.5224772309884429,
+            "total": 0.5681602050026413
+          }
+        }
+      ]
+    },
+    "36": {
+      "n_items": 28,
+      "n_scored": 28,
+      "accuracy_scored": 0.75,
+      "n_gt_known": 28,
+      "correct_gt_known": 21,
+      "accuracy_gt_known": 0.75,
+      "unknown_rate": 0.0,
+      "accuracy_overall": 0.75,
+      "by_task": {
+        "crosswalk_signal": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 7,
+          "accuracy_gt_known": 0.7777777777777778,
+          "n_scored": 9,
+          "accuracy_scored": 0.7777777777777778,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "obstacles": {
+          "n_items": 10,
+          "n_gt_known": 10,
+          "correct_gt_known": 10,
+          "accuracy_gt_known": 1.0,
+          "n_scored": 10,
+          "accuracy_scored": 1.0,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "stairs": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 4,
+          "accuracy_gt_known": 0.4444444444444444,
+          "n_scored": 9,
+          "accuracy_scored": 0.4444444444444444,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        }
+      },
+      "timing_s": {
+        "encode": {
+          "mean": 0.04534982885525096,
+          "p50": 0.045185518989455886,
+          "p95": 0.05024927294725785
+        },
+        "compress": {
+          "mean": 0.0002493229621904902,
+          "p50": 0.00024847099848557264,
+          "p95": 0.0002547420546761714
+        },
+        "llm": {
+          "mean": 0.45504224260886467,
+          "p50": 0.504231773520587,
+          "p95": 0.5107934284955263
+        },
+        "total": {
+          "mean": 0.5006534280702388,
+          "p50": 0.5495781929930672,
+          "p95": 0.5554173156007891
+        }
+      },
+      "gen_new_tokens": {
+        "mean": 3.5357142857142856,
+        "p50": 4.0,
+        "p95": 4.0,
+        "max": 4
+      },
+      "peak_mem_mb": 3466.19140625,
+      "items": [
+        {
+          "id": "Crosswalk_1",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_1.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.050324460986303166,
+            "compress": 0.00024560699239373207,
+            "llm": 0.5181585700192954,
+            "total": 0.5687409589882009
+          }
+        },
+        {
+          "id": "Crosswalk_2",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_2.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04771887697279453,
+            "compress": 0.00025133599410764873,
+            "llm": 0.504490885999985,
+            "total": 0.5524732910271268
+          }
+        },
+        {
+          "id": "Crosswalk_3",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_3.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red| green|",
+          "response_length_chars": 11,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.0463324660086073,
+            "compress": 0.000248775992076844,
+            "llm": 0.5050479269993957,
+            "total": 0.5516407210088801
+          }
+        },
+        {
+          "id": "Crosswalk_4",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_4.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red|green|",
+          "response_length_chars": 10,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04429019498638809,
+            "compress": 0.00024963999749161303,
+            "llm": 0.5053340799931902,
+            "total": 0.5498855949845165
+          }
+        },
+        {
+          "id": "Crosswalk_5",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_5.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044470680004451424,
+            "compress": 0.00024976799613796175,
+            "llm": 0.504707628977485,
+            "total": 0.5494396929861978
+          }
+        },
+        {
+          "id": "Stairs_1",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_1.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no yes\n no",
+          "response_length_chars": 10,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.039742918976116925,
+            "compress": 0.00025511201238259673,
+            "llm": 0.50366791698616,
+            "total": 0.5436781400057953
+          }
+        },
+        {
+          "id": "Stairs_2",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04280451699742116,
+            "compress": 0.000270824006292969,
+            "llm": 0.28691362898098305,
+            "total": 0.3300013229891192
+          }
+        },
+        {
+          "id": "Stairs_3",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_3.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.043303284008288756,
+            "compress": 0.0002491269842721522,
+            "llm": 0.5044809020182583,
+            "total": 0.5480457299854606
+          }
+        },
+        {
+          "id": "Stairs_4",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_4.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no no green",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04343404099927284,
+            "compress": 0.00025114399613812566,
+            "llm": 0.504166332015302,
+            "total": 0.5478634210012387
+          }
+        },
+        {
+          "id": "Stairs_5",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_5.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04151481398730539,
+            "compress": 0.0002507600001990795,
+            "llm": 0.5039110280049499,
+            "total": 0.54568866599584
+          }
+        },
+        {
+          "id": "Obstacle_1",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_1.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.05081532397889532,
+            "compress": 0.00024650301202200353,
+            "llm": 0.2875576489896048,
+            "total": 0.338631829014048
+          }
+        },
+        {
+          "id": "Obstacle_2",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04405738800414838,
+            "compress": 0.00024845500593073666,
+            "llm": 0.2878508420253638,
+            "total": 0.33216929397895
+          }
+        },
+        {
+          "id": "Obstacle_3",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_3.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "no no no no",
+          "response_length_chars": 11,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04811847300152294,
+            "compress": 0.0002448390005156398,
+            "llm": 0.5041635160159785,
+            "total": 0.5525386999943294
+          }
+        },
+        {
+          "id": "Obstacle_4",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_4.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.046247407008195296,
+            "compress": 0.00024324000696651638,
+            "llm": 0.28505210002185777,
+            "total": 0.3315560279879719
+          }
+        },
+        {
+          "id": "Obstacle_5",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_5.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes",
+          "response_length_chars": 7,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 3,
+          "timing_s": {
+            "encode": 0.050109638017602265,
+            "compress": 0.00024765499983914196,
+            "llm": 0.3946312810003292,
+            "total": 0.4450008629937656
+          }
+        },
+        {
+          "id": "Obstacle_6",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_6.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes yes green white",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04376992300967686,
+            "compress": 0.0002465349971316755,
+            "llm": 0.5112272849946748,
+            "total": 0.5552554239984602
+          }
+        },
+        {
+          "id": "Crosswalk_6",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_6.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "red green red",
+          "response_length_chars": 13,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04511959699448198,
+            "compress": 0.00025034300051629543,
+            "llm": 0.5037782870058436,
+            "total": 0.5491594600025564
+          }
+        },
+        {
+          "id": "Crosswalk_7",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_7.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "green red green red",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04536139598349109,
+            "compress": 0.0002477839880157262,
+            "llm": 0.5037693589983974,
+            "total": 0.5493904750037473
+          }
+        },
+        {
+          "id": "Crosswalk_8",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_8.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "green green green red",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04510109999682754,
+            "compress": 0.0002458640083204955,
+            "llm": 0.5065005469950847,
+            "total": 0.5518589990097098
+          }
+        },
+        {
+          "id": "Crosswalk_9",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_9.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "green green red red",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04491770299500786,
+            "compress": 0.00024355898494832218,
+            "llm": 0.5050585829885677,
+            "total": 0.5502305330010131
+          }
+        },
+        {
+          "id": "Stairs_6",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_6.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04525144098442979,
+            "compress": 0.00025261600967496634,
+            "llm": 0.5099876949971076,
+            "total": 0.5555044880020432
+          }
+        },
+        {
+          "id": "Stairs_7",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_7.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no\n no no",
+          "response_length_chars": 9,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045443511015037075,
+            "compress": 0.00024842299171723425,
+            "llm": 0.5065968700218946,
+            "total": 0.5523009650059976
+          }
+        },
+        {
+          "id": "Stairs_8",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no\n no",
+          "response_length_chars": 6,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04528043299796991,
+            "compress": 0.0002468879974912852,
+            "llm": 0.504297215025872,
+            "total": 0.5498358639888465
+          }
+        },
+        {
+          "id": "Stairs_9",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_9.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04508103500120342,
+            "compress": 0.0002477839880157262,
+            "llm": 0.5055762309930287,
+            "total": 0.5509157699998468
+          }
+        },
+        {
+          "id": "Obstacle_7",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_7.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04537410000921227,
+            "compress": 0.0002457029768265784,
+            "llm": 0.28622528800042346,
+            "total": 0.33185731701087207
+          }
+        },
+        {
+          "id": "Obstacle_8",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_8.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "no\n no yes",
+          "response_length_chars": 10,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045367925020400435,
+            "compress": 0.0002484869910404086,
+            "llm": 0.5040877040009946,
+            "total": 0.5497166929999366
+          }
+        },
+        {
+          "id": "Obstacle_9",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_9.jpg",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04549122400931083,
+            "compress": 0.0002502160205040127,
+            "llm": 0.28586985397851095,
+            "total": 0.33162419000291266
+          }
+        },
+        {
+          "id": "Obstacle_10",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_10.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.0449513359926641,
+            "compress": 0.0002540549903642386,
+            "llm": 0.5080735869996715,
+            "total": 0.5532915549993049
+          }
+        }
+      ]
+    },
+    "9": {
+      "n_items": 28,
+      "n_scored": 28,
+      "accuracy_scored": 0.5,
+      "n_gt_known": 28,
+      "correct_gt_known": 14,
+      "accuracy_gt_known": 0.5,
+      "unknown_rate": 0.0,
+      "accuracy_overall": 0.5,
+      "by_task": {
+        "crosswalk_signal": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 4,
+          "accuracy_gt_known": 0.4444444444444444,
+          "n_scored": 9,
+          "accuracy_scored": 0.4444444444444444,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "obstacles": {
+          "n_items": 10,
+          "n_gt_known": 10,
+          "correct_gt_known": 7,
+          "accuracy_gt_known": 0.7,
+          "n_scored": 10,
+          "accuracy_scored": 0.7,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        },
+        "stairs": {
+          "n_items": 9,
+          "n_gt_known": 9,
+          "correct_gt_known": 3,
+          "accuracy_gt_known": 0.3333333333333333,
+          "n_scored": 9,
+          "accuracy_scored": 0.3333333333333333,
+          "unknown_rate": 0.0,
+          "unknown_ambiguous": 0.0,
+          "unknown_low_confidence": 0.0
+        }
+      },
+      "timing_s": {
+        "encode": {
+          "mean": 0.0452814231820022,
+          "p50": 0.04513945301005151,
+          "p95": 0.05028506875678431
+        },
+        "compress": {
+          "mean": 0.0002451148923552994,
+          "p50": 0.0002448070008540526,
+          "p95": 0.00025003360788105055
+        },
+        "llm": {
+          "mean": 0.4335007949266583,
+          "p50": 0.5024049165076576,
+          "p95": 0.5080447693515453
+        },
+        "total": {
+          "mean": 0.4790395048205807,
+          "p50": 0.5469028774969047,
+          "p95": 0.5547424760996365
+        }
+      },
+      "gen_new_tokens": {
+        "mean": 3.357142857142857,
+        "p50": 4.0,
+        "p95": 4.0,
+        "max": 4
+      },
+      "peak_mem_mb": 3466.35546875,
+      "items": [
+        {
+          "id": "Crosswalk_1",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_1.png",
+          "gt": "red",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.050412943004630506,
+            "compress": 0.0002467599988449365,
+            "llm": 0.502768111997284,
+            "total": 0.5534402309858706
+          }
+        },
+        {
+          "id": "Crosswalk_2",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_2.png",
+          "gt": "green",
+          "pred": "green",
+          "text": "green green green green",
+          "response_length_chars": 23,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.047617400996387005,
+            "compress": 0.0002472400083206594,
+            "llm": 0.5075669159996323,
+            "total": 0.5554436850070488
+          }
+        },
+        {
+          "id": "Crosswalk_3",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_3.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red| green|",
+          "response_length_chars": 11,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.046708574023796245,
+            "compress": 0.00024877500254660845,
+            "llm": 0.5023989810142666,
+            "total": 0.5493685539986473
+          }
+        },
+        {
+          "id": "Crosswalk_4",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_4.png",
+          "gt": "red",
+          "pred": "red",
+          "text": "red| green|",
+          "response_length_chars": 11,
+          "response_length_words": 2,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04439551001996733,
+            "compress": 0.00024228001711890101,
+            "llm": 0.5043150389974471,
+            "total": 0.5489648609946016
+          }
+        },
+        {
+          "id": "Crosswalk_5",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_5.png",
+          "gt": "green",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044280786998569965,
+            "compress": 0.0002458629896864295,
+            "llm": 0.5024108520010486,
+            "total": 0.5469491189869586
+          }
+        },
+        {
+          "id": "Stairs_1",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_1.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.03955712198512629,
+            "compress": 0.00024397499510087073,
+            "llm": 0.5033010889892466,
+            "total": 0.5431139620195609
+          }
+        },
+        {
+          "id": "Stairs_2",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_2.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04293972201412544,
+            "compress": 0.0002449990133754909,
+            "llm": 0.5083020750025753,
+            "total": 0.5514994680124801
+          }
+        },
+        {
+          "id": "Stairs_3",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_3.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes green green green",
+          "response_length_chars": 21,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04291373601881787,
+            "compress": 0.0002451920008752495,
+            "llm": 0.5023848359996919,
+            "total": 0.5455550279875752
+          }
+        },
+        {
+          "id": "Stairs_4",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_4.png",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04323057900182903,
+            "compress": 0.000244519003899768,
+            "llm": 0.5028973309963476,
+            "total": 0.5463847500213888
+          }
+        },
+        {
+          "id": "Stairs_5",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_5.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes green green yes",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04103098998893984,
+            "compress": 0.00024535198463127017,
+            "llm": 0.5012633610167541,
+            "total": 0.542551448015729
+          }
+        },
+        {
+          "id": "Obstacle_1",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_1.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.05062946199905127,
+            "compress": 0.00024240699713118374,
+            "llm": 0.2842938690155279,
+            "total": 0.3351774829789065
+          }
+        },
+        {
+          "id": "Obstacle_2",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_2.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04375101000186987,
+            "compress": 0.0002439119853079319,
+            "llm": 0.28466664798907004,
+            "total": 0.3286737939924933
+          }
+        },
+        {
+          "id": "Obstacle_3",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_3.png",
+          "gt": "no",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04828631802229211,
+            "compress": 0.00024135198327712715,
+            "llm": 0.5032485740084667,
+            "total": 0.5517893320065923
+          }
+        },
+        {
+          "id": "Obstacle_4",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_4.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04614458800642751,
+            "compress": 0.0002446149883326143,
+            "llm": 0.2852743469993584,
+            "total": 0.33167683001374826
+          }
+        },
+        {
+          "id": "Obstacle_5",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_5.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.05004758801078424,
+            "compress": 0.00024400700931437314,
+            "llm": 0.28402026000549085,
+            "total": 0.334324111987371
+          }
+        },
+        {
+          "id": "Obstacle_6",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_6.png",
+          "gt": "yes",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.043965993012534454,
+            "compress": 0.0002500560076441616,
+            "llm": 0.28837735499837436,
+            "total": 0.3326056280056946
+          }
+        },
+        {
+          "id": "Crosswalk_6",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_6.jpg",
+          "gt": "red",
+          "pred": "green",
+          "text": "green",
+          "response_length_chars": 5,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04528920099255629,
+            "compress": 0.0002499920083209872,
+            "llm": 0.28491580797708593,
+            "total": 0.33046703299623914
+          }
+        },
+        {
+          "id": "Crosswalk_7",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_7.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "green green red red",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04506317901541479,
+            "compress": 0.00024455098900943995,
+            "llm": 0.5030601839825977,
+            "total": 0.5483788269921206
+          }
+        },
+        {
+          "id": "Crosswalk_8",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_8.jpg",
+          "gt": "red",
+          "pred": "red",
+          "text": "red red red red",
+          "response_length_chars": 15,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04495754299568944,
+            "compress": 0.0002492560015525669,
+            "llm": 0.5025844900228549,
+            "total": 0.5478038970031776
+          }
+        },
+        {
+          "id": "Crosswalk_9",
+          "task": "crosswalk_signal",
+          "path": "data/eval/images/crosswalk/Crosswalk_9.jpg",
+          "gt": "green",
+          "pred": "red",
+          "text": "red green green red",
+          "response_length_chars": 19,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044846723991213366,
+            "compress": 0.00024877500254660845,
+            "llm": 0.5017501920228824,
+            "total": 0.5468566360068507
+          }
+        },
+        {
+          "id": "Stairs_6",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_6.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04531678700004704,
+            "compress": 0.00024544697953388095,
+            "llm": 0.5031978199840523,
+            "total": 0.5487714469782077
+          }
+        },
+        {
+          "id": "Stairs_7",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_7.jpg",
+          "gt": "no",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04517924602259882,
+            "compress": 0.00023949501337483525,
+            "llm": 0.28476213800604455,
+            "total": 0.33019371298723854
+          }
+        },
+        {
+          "id": "Stairs_8",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_8.jpg",
+          "gt": "no",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.045248688984429464,
+            "compress": 0.00023898298968560994,
+            "llm": 0.284153319982579,
+            "total": 0.32965356900240295
+          }
+        },
+        {
+          "id": "Stairs_9",
+          "task": "stairs",
+          "path": "data/eval/images/stairs/Stairs_9.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green green",
+          "response_length_chars": 18,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045430869999108836,
+            "compress": 0.00025216801441274583,
+            "llm": 0.5027274059830233,
+            "total": 0.5484225719992537
+          }
+        },
+        {
+          "id": "Obstacle_7",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_7.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green|",
+          "response_length_chars": 13,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.044875332998344675,
+            "compress": 0.00024999197921715677,
+            "llm": 0.5045927119790576,
+            "total": 0.5497308050107677
+          }
+        },
+        {
+          "id": "Obstacle_8",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_8.jpg",
+          "gt": "no",
+          "pred": "yes",
+          "text": "yes",
+          "response_length_chars": 3,
+          "response_length_words": 1,
+          "prompt_echo_detected": false,
+          "stop_reason": "eos_or_stop",
+          "unknown_subtype": null,
+          "n_gen_tokens": 2,
+          "timing_s": {
+            "encode": 0.04533035500207916,
+            "compress": 0.0002422480029053986,
+            "llm": 0.28552936197957024,
+            "total": 0.3311142209859099
+          }
+        },
+        {
+          "id": "Obstacle_9",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_9.jpg",
+          "gt": "yes",
+          "pred": "no",
+          "text": "yes no green|",
+          "response_length_chars": 13,
+          "response_length_words": 3,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.045099659997504205,
+            "compress": 0.00023917501675896347,
+            "llm": 0.5020624260068871,
+            "total": 0.5474136770062614
+          }
+        },
+        {
+          "id": "Obstacle_10",
+          "task": "obstacles",
+          "path": "data/eval/images/obstacles/Obstacle_10.jpg",
+          "gt": "no",
+          "pred": "no",
+          "text": "yes no no no",
+          "response_length_chars": 12,
+          "response_length_words": 4,
+          "prompt_echo_detected": false,
+          "stop_reason": "max_new_tokens",
+          "unknown_subtype": null,
+          "n_gen_tokens": 4,
+          "timing_s": {
+            "encode": 0.04532993899192661,
+            "compress": 0.00024183100322261453,
+            "llm": 0.5111967549892142,
+            "total": 0.5567814529931638
+          }
+        }
+      ]
+    }
+  }
+}

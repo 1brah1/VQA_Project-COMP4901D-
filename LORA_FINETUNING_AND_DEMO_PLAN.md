@@ -98,28 +98,30 @@ Steps:
 - Baseline challenge: Latency + accuracy on edge devices (Jetson Orin NX)
 
 **Technical Approach** (Slide 3–6)
-- **Vision Pipeline:** SigLIP + token compression (reduce 729→192 tokens)
-- **LLM:** Qwen2.5-1.5B on Jetson with FP32 stability fallback
-- **Phase 1 Results:** 46.43% accuracy (no degeneration after FP16 fix)
-- **Phase 2 (LoRA):** Fine-tuning strategy for +5–15% improvement
+- **Vision Pipeline:** SigLIP + token compression (reduce 576→192/81/36/9 tokens)
+- **LLM:** Qwen2.5-0.5B (Jetson default) + optional 1.5B with FP32 fallback when needed
+- **Baseline sweep:** 0.5B FP16 (label_only t4) best accuracy_gt_known 0.50 @ compression 36
+- **Phase 2 (LoRA):** Fine-tuning on task data to improve accuracy at similar compression
 
 **LoRA Fine-Tuning Details** (Slide 7–9)
-- Why LoRA: ~20MB weights vs 1.5B model, 5–10% latency overhead
-- Training data: Expanded accessibility VQA dataset
-- Training config: 2 epochs, LoRA rank=8, target LLM projections
-- Expected outcome: 52–60% accuracy on Jetson
+- Why LoRA: ~20MB weights vs full model, modest latency overhead
+- Training data: Expanded accessibility VQA dataset (28 eval images with augmentations)
+- Training config: 3 epochs on Jetson, LoRA rank=8, target LLM projections
+- Observed outcome: 0.5B LoRA (label_only t4) best accuracy_gt_known 0.75 @ compression 36
 
 **Results Comparison** (Slide 10–12)
-- **Baseline (c9, t2):** 46.43% acc, 1.6s latency
-- **With LoRA:** XX% acc, ≈1.8s latency (estimated)
-- **Task breakdown:** Crosswalk, stairs, obstacles per-task accuracy
-- **Degeneration metrics:** Unknown rate, bang rate (should remain ~0)
+- **0.5B FP16 baseline (label_only t4):** best accuracy_gt_known 0.50 @ compression 36
+- **0.5B FP16 + LoRA (label_only t4):** best accuracy_gt_known 0.75 @ compression 36
+- **0.5B FP16 + LoRA (label_only t8):** same accuracy (0.75) but higher latency
+- **1.5B FP16 + LoRA:** best accuracy_gt_known 0.821 @ compression 192 (FP32 fallback on Jetson)
+- **Latency context:** 0.5B LoRA fastest mean ~479 ms @ compression 9; 1.5B LoRA ~1955 ms @ compression 9
+- **Dataset note:** results are on a small 28-image eval set
 
 **Architecture Diagram** (Slide 13)
 ```
-Image → SigLIP (768 tokens) → Compress (192 tokens) → 
-  Qwen-1.5B (base) + LoRA adapter → Classification
-  (FP32 fallback for stability)
+Image → SigLIP (576 tokens) → Compress (192 tokens) →
+   Qwen-0.5B (base) + LoRA adapter → Classification
+   (1.5B optional, FP32 fallback for stability)
 ```
 
 **Demo & Live Results** (Slide 14–15)

@@ -93,6 +93,12 @@ def main() -> None:
     p.add_argument("--labels", type=str, default="data/eval/labels.json")
     p.add_argument("--siglip", type=str, default="google/siglip-base-patch16-384")
     p.add_argument("--llm", type=str, default="Qwen/Qwen2.5-0.5B-Instruct")
+    p.add_argument(
+        "--lora-adapter",
+        type=str,
+        default=None,
+        help="Optional LoRA adapter directory for fp16 mode.",
+    )
     p.add_argument("--image-proj", type=str, default=None, help="Optional image_proj.pt file or directory")
     p.add_argument("--expected-hidden-size", type=int, default=None,
                    help="Optional strict check for loaded LLM hidden size.")
@@ -131,6 +137,11 @@ def main() -> None:
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
 
+    if args.image_proj is None and args.lora_adapter:
+        candidate = Path(args.lora_adapter) / "image_proj.pt"
+        if candidate.exists():
+            args.image_proj = str(candidate)
+
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -146,24 +157,33 @@ def main() -> None:
 
     if args.llm_mode == "fp16":
         loaded = load_llm_fp16_or_fp32(args.llm, device=device, dtype=dtype)
-        llm_dtype = next(loaded.model.parameters()).dtype
-        vlm = SimplePrefixVLM.from_loaded_llm(
-            tokenizer=loaded.tokenizer,
-            llm=loaded.model,
-            device=device,
-            dtype=llm_dtype,
-            image_token_dim=768,
-        )
     else:
         loaded = load_llm_awq(args.llm, device=device)
-        llm_dtype = next(loaded.model.parameters()).dtype
-        vlm = SimplePrefixVLM.from_loaded_llm(
-            tokenizer=loaded.tokenizer,
-            llm=loaded.model,
-            device=device,
-            dtype=llm_dtype,
-            image_token_dim=768,
-        )
+
+    model = loaded.model
+    lora_adapter = args.lora_adapter
+    if lora_adapter:
+        if args.llm_mode != "fp16":
+            raise ValueError("--lora-adapter is only supported with --llm_mode fp16")
+        try:
+            from peft import PeftModel
+        except Exception as exc:
+            raise RuntimeError("peft is required for --lora-adapter") from exc
+
+        adapter_path = Path(lora_adapter)
+        if not adapter_path.exists():
+            raise FileNotFoundError(f"LoRA adapter not found: {adapter_path}")
+        model = PeftModel.from_pretrained(model, str(adapter_path))
+        model.eval()
+
+    llm_dtype = next(model.parameters()).dtype
+    vlm = SimplePrefixVLM.from_loaded_llm(
+        tokenizer=loaded.tokenizer,
+        llm=model,
+        device=device,
+        dtype=llm_dtype,
+        image_token_dim=768,
+    )
 
     expected_hidden_size = args.expected_hidden_size
     if expected_hidden_size is None:
@@ -176,6 +196,7 @@ def main() -> None:
         "dtype": str(dtype),
         "siglip": args.siglip,
         "llm": args.llm,
+        "lora_adapter": args.lora_adapter,
         "image_proj": image_proj_path,
         "llm_mode": args.llm_mode,
         "seed": args.seed,
