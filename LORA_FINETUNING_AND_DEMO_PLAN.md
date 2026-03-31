@@ -100,19 +100,18 @@ Steps:
 **Technical Approach** (Slide 3–6)
 - **Vision Pipeline:** SigLIP + token compression (reduce 576→192/81/36/9 tokens)
 - **LLM:** Qwen2.5-0.5B (Jetson default) + optional 1.5B with FP32 fallback when needed
-- **Baseline sweep:** 0.5B FP16 (label_only t4) best accuracy_gt_known 0.50 @ compression 36
+- **Baseline sweep:** 0.5B FP16 best accuracy_gt_known 0.50 @ compression 36
 - **Phase 2 (LoRA):** Fine-tuning on task data to improve accuracy at similar compression
 
 **LoRA Fine-Tuning Details** (Slide 7–9)
 - Why LoRA: ~20MB weights vs full model, modest latency overhead
 - Training data: Expanded accessibility VQA dataset (28 eval images with augmentations)
 - Training config: 3 epochs on Jetson, LoRA rank=8, target LLM projections
-- Observed outcome: 0.5B LoRA (label_only t4) best accuracy_gt_known 0.75 @ compression 36
+- Observed outcome: 0.5B LoRA best accuracy_gt_known 0.75 @ compression 36
 
 **Results Comparison** (Slide 10–12)
-- **0.5B FP16 baseline (label_only t4):** best accuracy_gt_known 0.50 @ compression 36
-- **0.5B FP16 + LoRA (label_only t4):** best accuracy_gt_known 0.75 @ compression 36
-- **0.5B FP16 + LoRA (label_only t8):** same accuracy (0.75) but higher latency
+- **0.5B FP16 baseline:** best accuracy_gt_known 0.50 @ compression 36
+- **0.5B FP16 + LoRA:** best accuracy_gt_known 0.75 @ compression 36
 - **1.5B FP16 + LoRA:** best accuracy_gt_known 0.821 @ compression 192 (FP32 fallback on Jetson)
 - **Latency context:** 0.5B LoRA fastest mean ~479 ms @ compression 9; 1.5B LoRA ~1955 ms @ compression 9
 - **Dataset note:** results are on a small 28-image eval set

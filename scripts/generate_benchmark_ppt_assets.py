@@ -26,16 +26,7 @@ def _series_label(data: Dict[str, Any]) -> str:
     mode = str(data.get("llm_mode", "fp16")).lower()
     mode_label = "FP16" if mode == "fp16" else "AWQ-request"
     lora = " + LoRA" if data.get("lora_adapter") else ""
-    bench = data.get("benchmark_config", {}) if isinstance(data.get("benchmark_config"), dict) else {}
-    max_tokens = bench.get("max_new_tokens_used")
-    prompt_style = bench.get("prompt_style")
-    suffix_parts = []
-    if prompt_style:
-        suffix_parts.append(str(prompt_style))
-    if max_tokens is not None:
-        suffix_parts.append(f"t{max_tokens}")
-    suffix = f" ({' '.join(suffix_parts)})" if suffix_parts else ""
-    return f"{size} {mode_label}{lora}{suffix}".strip()
+    return f"{size} {mode_label}{lora}".strip()
 
 
 def _load_series(path: Path) -> Dict[str, Any]:
@@ -101,8 +92,8 @@ def _write_findings(series_list: List[Dict[str, Any]], out_path: Path) -> None:
     lines.append("# Findings Summary (Compression Benchmarks)")
     lines.append("")
     lines.append("## Design optimization objective")
-    lines.append("- Reduce SigLIP patch tokens (576 -> 192/81/36/9) to lower end-to-end latency while keeping label accuracy usable.")
-    lines.append("- Keep the pipeline edge-friendly: deterministic compression + short label outputs for reliable parsing.")
+    lines.append("- Reduce SigLIP patch tokens (576 -> 192/81/36/9) to lower end-to-end latency while keeping classification accuracy usable.")
+    lines.append("- Keep the pipeline edge-friendly: deterministic compression + short fixed-length outputs for reliable parsing.")
     lines.append("")
     lines.append("## System constraints (Jetson)")
     lines.append("- Memory and latency limits on Jetson Orin NX require smaller models and shorter generations.")
@@ -111,11 +102,11 @@ def _write_findings(series_list: List[Dict[str, Any]], out_path: Path) -> None:
     lines.append("")
     lines.append("## Solutions utilized")
     lines.append("- Deterministic token compression before VLM inference to trade resolution for speed.")
-    lines.append("- Prompt styles that force label-only outputs to reduce unknowns and parsing errors.")
+    lines.append("- Short fixed-length outputs to reduce unknowns and parsing errors.")
     lines.append("- Optional LoRA adapters and self-speculative decoding (PPSD-inspired) for future speedups.")
     lines.append("")
     lines.append("## Key benchmark findings")
-    lines.append("| Series | Best accuracy_gt_known | Compression | Best total mean (ms) | Compression |")
+    lines.append("| Series | Best accuracy (GT known) | Compression | Best total mean (ms) | Compression |")
     lines.append("|---|---:|---:|---:|---:|")
     notes: List[str] = []
     for series in series_list:
